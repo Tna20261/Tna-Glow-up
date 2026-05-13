@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Glow Up"/>
+<meta name="theme-color" content="#07070F"/>
+<title>Glow Up 190→160</title>
+<!-- React + Babel via CDN - allows JSX in browser -->
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body style="margin:0;padding:0;background:#07070F">
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect } = React;
+
+
+
+const C = {
+  bg:"#07070F",s1:"#0D0D18",s2:"#12121E",s3:"#181826",bd:"#1E1E30",
+  acc:"#D4FF6B",accD:"#D4FF6B18",accB:"#D4FF6B40",
+  pink:"#FF6BA8",pinkD:"#FF6BA818",
+  blue:"#6BAAFF",blueD:"#6BAAFF18",
+  teal:"#6BFFD4",tealD:"#6BFFD418",
+  ora:"#FFB06B",oraD:"#FFB06B18",
+  red:"#FF6B6B",redD:"#FF6B6B18",
+  purple:"#B06BFF",purpleD:"#B06BFF18",
+  text:"#F0F0F8",muted:"#55557A",muted2:"#28283C",
+};
+
+const MONTHS=["jan","fév","mar","avr","mai","jun","jul","aoû","sep","oct","nov","déc"];
+const DNAMES=["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
+const DFULL=["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi","Dimanche"];
+const TOTAL_WEEKS=18;
+const WEEK_COLORS=["#D4FF6B","#FFB06B","#FF6BA8","#6BFFD4","#6BAAFF","#B06BFF","#FF6B6B","#D4FF6B","#FFB06B","#FF6BA8","#6BFFD4","#6BAAFF","#B06BFF","#FF6B6B","#D4FF6B","#FFB06B","#FF6BA8","#6BFFD4"];
+const THEMES=["🔥 MAX · Fondation","🔥 MAX · Déficit","🔥 MAX · Énergie","🔥 MAX · Intensité","🔥 MAX · Momentum","🔥 MAX · Accélération","🔥 MAX · Force","🔥 MAX · Endurance","🔥 MAX · Puissance","🔥 MAX · Sprint","✨ FINISH · Discipline","✨ FINISH · Sculpture","✨ FINISH · Définition","✨ FINISH · Éclat","✨ FINISH · Confiance","✨ FINISH · Maîtrise","✨ FINISH · Finale","✨ FINISH · Victoire"];
+
+const START=(()=>{const d=new Date();d.setHours(0,0,0,0);const day=d.getDay(),diff=day===0?1:(8-day);d.setDate(d.getDate()+diff);return d;})();
+const getDate=(w,d)=>{const r=new Date(START);r.setDate(r.getDate()+w*7+d);return r;};
+const fmt=(d)=>`${d.getDate()} ${MONTHS[d.getMonth()]}`;
+const today=new Date();today.setHours(0,0,0,0);
+const diffDays=Math.floor((today-START)/864e5);
+const todayW=Math.max(0,Math.min(TOTAL_WEEKS-1,Math.floor(diffDays/7)));
+const todayD=Math.max(0,Math.min(6,((diffDays%7)+7)%7));
+
+// ── TASK BUILDER ──────────────────────────────────────────────────────────────
+function buildTasks(wi,di){
+  const isMax=wi<10,isWork=di<4,isSun=di===6;
+  if(isSun) return [
+    {id:"s1",cat:"⚖️ Pesée & Bilan",t:"Pesée officielle semaine (après toilettes, avant manger)"},
+    {id:"s2",cat:"⚖️ Pesée & Bilan",t:"Mensurations : taille + hanches + bras + cuisse"},
+    {id:"s3",cat:"⚖️ Pesée & Bilan",t:`Photos progrès sem.${wi+1} — même lumière, même posture`},
+    {id:"s4",cat:"⚖️ Pesée & Bilan",t:"Apple Watch : pas moy. + sommeil + calories brûlées"},
+    {id:"s5",cat:"🍱 Meal Prep",t:`Cuire 1,2kg poulet au four 25min 200°C — ${isMax?"PAS de féculent (Phase MAX)":"+ 100g riz brun/portion (Phase FINISH)"}`},
+    {id:"s6",cat:"🍱 Meal Prep",t:isMax?"Cuire quinoa léger 200g pour 2 repas seulement":"Cuire 500g riz brun dans bouillon"},
+    {id:"s7",cat:"🍱 Meal Prep",t:"Rôtir plaque légumes (brocoli + courgette + poivron) 220°C 20min"},
+    {id:"s8",cat:"🍱 Meal Prep",t:"Bouillir 10 œufs durs"},
+    {id:"s9",cat:"🍱 Meal Prep",t:"Assembler 5 Tupperware L–Ma–Me–Je–Ve étiquetés"},
+    {id:"s10",cat:"🍱 Meal Prep",t:"Laver et couper légumes crus pour snacks semaine"},
+    {id:"s11",cat:"🏃 Cardio",t:"Marche récupération 30min zone 2 légère"},
+    {id:"s12",cat:"📅 Organisation",t:"Vérifier liste épicerie + noter manquants"},
+    {id:"s13",cat:"📅 Organisation",t:"Planifier entraînements semaine dans le calendrier"},
+    {id:"s14",cat:"📅 Organisation",t:"Préparer 4 tenues sport sorties et visibles"},
+    {id:"s15",cat:"💆 Self Care",t:"Bain ou douche longue + soin peau"},
+    {id:"s16",cat:"💆 Self Care",t:"Journaling 5min : bilan semaine + intention prochaine"},
+    {id:"w1",cat:"💧 Eau",t:"500ml eau au réveil"},
+    {id:"w2",cat:"💧 Eau",t:"3,0–3,5L total dans la journée"},
+    {id:"p1",cat:"💊 Suppléments",t:"Créatine 5g"},
+    {id:"p2",cat:"💊 Suppléments",t:"D3 2000 UI + K2 avec repas"},
+    {id:"p3",cat:"💊 Suppléments",t:"Oméga-3 2g avec repas"},
+    {id:"p4",cat:"💊 Suppléments",t:"Magnésium bisglycinate 300mg avant dodo"},
+    {id:"sl1",cat:"🌙 Sommeil",t:"Coucher 22h00 max — 7h OBLIGATOIRE"},
+    {id:"sl2",cat:"🌙 Sommeil",t:"Lumière chaude + no écrans bleus dès 21h30"},
+  ];
+  const morning=isWork?[
+    {id:"am1",cat:"🌅 Matin",t:"Réveil 06h30 — NE PAS toucher téléphone (1min règle)"},
+    {id:"am2",cat:"🌅 Matin",t:"500ml eau immédiatement (verre sur table de nuit)"},
+    {id:"am3",cat:"🌅 Matin",t:"Ouvrir stores — lumière vive (reset circadien)"},
+    {id:"am4",cat:"🌅 Matin",t:"5min étirements doux"},
+    {id:"am5",cat:"🌅 Matin",t:"Café ou thé noir SANS sucre"},
+    {id:"am6",cat:"🌅 Matin",t:"Check objectifs Apple Watch du jour"},
+  ]:[
+    {id:"am1",cat:"🌅 Matin",t:"Réveil naturel + 500ml eau"},
+    {id:"am2",cat:"🌅 Matin",t:"Pesée du matin (avant manger)"},
+    {id:"am3",cat:"🌅 Matin",t:"Café ou thé noir SANS sucre"},
+    {id:"am4",cat:"🌅 Matin",t:"Check stats Apple Watch semaine"},
+  ];
+  const meals=isMax?[
+    {id:"m1",cat:"🍽️ Repas",t:"REPAS 1 (12h00) — Omelette 3 œufs + blancs + légumes · 350 kcal · 36g prot. [MAX]"},
+    {id:"m2",cat:"🍽️ Repas",t:"REPAS 2 (15h30) — Poulet 175g + légumes rôtis sans féculent · 380 kcal · 50g prot. [MAX]"},
+    {id:"m3",cat:"🍽️ Repas",t:"REPAS 3 (18h30) — Shake whey + salade · 300 kcal · 35g prot. [MAX]"},
+    {id:"m4",cat:"🍽️ Repas",t:"Fenêtre FERMÉE 19h30 — brosser les dents (Phase MAX)"},
+  ]:[
+    {id:"m1",cat:"🍽️ Repas",t:"REPAS 1 (12h00) — Omelette 4 œufs + légumes + ½ avocat · 420 kcal · 38g prot."},
+    {id:"m2",cat:"🍽️ Repas",t:"REPAS 2 (15h30) — Poulet 175g + riz brun + légumes rôtis · 480 kcal · 52g prot."},
+    {id:"m3",cat:"🍽️ Repas",t:"REPAS 3 (18h30–19h30) — Shake OU cottage cheese + salade · 350 kcal · 35g prot."},
+    {id:"m4",cat:"🍽️ Repas",t:"Fenêtre FERMÉE 20h00 — brosser les dents"},
+  ];
+  const train=(di===0||di===4)?[
+    {id:"t1",cat:"💪 Entraînement",t:"LOWER BODY 35min — Goblet squat · RDL · Fentes · Hip thrust · Planche"},
+    {id:"t2",cat:"💪 Entraînement",t:"Progression : augmenter poids si 15 reps faciles 2 séances consécutives"},
+  ]:(di===2||di===5)?[
+    {id:"t1",cat:"💪 Entraînement",t:"UPPER BODY 35min — Arnold press · Rowing · Fly latéral · Curl · Triceps overhead"},
+    {id:"t2",cat:"💪 Entraînement",t:"Avant-bras : commencer léger si douleur résiduelle fracture"},
+  ]:[];
+  const cardio=isWork?[
+    {id:"c1",cat:"🏃 Cardio",t:isMax?`Marche rapide 45min AVANT de rentrer + HIIT 10min si sem≥3 · cible 10 000 pas [MAX]`:`Marche rapide 30min AVANT de rentrer · cible 10 000 pas`},
+    {id:"c2",cat:"🏃 Cardio",t:isMax?"FC zone 3 (135–155 bpm) pendant HIIT — Apple Watch":"FC zone 2 (115–135 bpm) — Apple Watch"},
+  ]:[{id:"c1",cat:"🏃 Cardio",t:isMax?"Cardio 45min + HIIT 20min · 10 000 pas":"Cardio 30min · 10 000 pas cible"}];
+  const water=[
+    {id:"w1",cat:"💧 Eau",t:"500ml eau au réveil"},
+    {id:"w2",cat:"💧 Eau",t:isMax?"500ml eau à 10h + 500ml eau 11h30 (coupe appétit)":"500ml eau à 10h / 12h"},
+    {id:"w3",cat:"💧 Eau",t:"500ml eau à 14h / 15h"},
+    {id:"w4",cat:"💧 Eau",t:"500ml eau à 17h / 18h"},
+    {id:"w5",cat:"💧 Eau",t:"Total 3,0–3,5L atteint ✓"},
+  ];
+  const supps=[
+    {id:"p1",cat:"💊 Suppléments",t:"Créatine 5g"},
+    {id:"p2",cat:"💊 Suppléments",t:"D3 2000 UI + K2 avec repas gras"},
+    {id:"p3",cat:"💊 Suppléments",t:"Oméga-3 2g avec repas"},
+    {id:"p4",cat:"💊 Suppléments",t:"Magnésium bisglycinate 300mg avant dodo"},
+  ];
+  const sleep=[
+    {id:"sl1",cat:"🌙 Sommeil",t:"Coucher 22h00 max — 7h minimum"},
+    {id:"sl2",cat:"🌙 Sommeil",t:"Lumière chaude + no écrans bleus dès 21h30"},
+    {id:"sl3",cat:"🌙 Sommeil",t:"Préparer vêtements + Tupperware du lendemain"},
+  ];
+  return [...morning,...meals,...train,...cardio,...water,...supps,...sleep];
+}
+
+// ── RECIPES ───────────────────────────────────────────────────────────────────
+const RECIPES=[
+  {color:"#D4FF6B",tip:"Batch cook dimanche = 90min pour 5 jours. Investissement #1.",recipes:[
+    {name:"Bowl Poulet Citron-Ail",tag:"Repas 2 · Meal prep",time:"10min",kcal:380,prot:50,cost:"~3,50$/port.",color:"#D4FF6B",ing:["175g poulet batch","100g quinoa cuit","200g brocoli vapeur","2 gousses ail","1 citron","1 c.s. huile olive"],steps:["Sortir poulet batch, trancher","Micro-ondes quinoa + brocoli 3min","Mélanger huile + citron + ail pressé","Assembler bowl, arroser vinaigrette"]},
+    {name:"Omelette Denver Power",tag:"Repas 1 · Brisure jeûne",time:"8min",kcal:350,prot:36,cost:"~2,20$/port.",color:"#FFB06B",ing:["3 œufs + 2 blancs","½ poivron rouge","½ oignon vert","Épinards frais","Paprika fumé, sel rose"],steps:["Battre œufs + blancs + paprika","Revenir poivron + oignon 2min","Verser œufs, laisser prendre 1min","Ajouter épinards, plier, servir"]},
+    {name:"Cottage Bowl Fraises-Amandes",tag:"Repas 3 · Soir léger",time:"3min",kcal:300,prot:32,cost:"~2,80$/port.",color:"#FF6BA8",ing:["200g cottage cheese 2%","½ tasse fraises","15 amandes non salées","1 c.t. cannelle"],steps:["Verser cottage cheese","Ajouter fraises tranchées","Garnir amandes + cannelle","Consommer avant fermeture fenêtre"]},
+  ]},
+  {color:"#FFB06B",tip:"Nouvelle saveur par repas = zéro envie de fast food.",recipes:[
+    {name:"Saumon Teriyaki Maison",tag:"Repas 2 · Savoureux",time:"15min",kcal:420,prot:48,cost:"~5,50$/port.",color:"#6BFFD4",ing:["180g filet saumon","1 c.s. sauce soja réduite sodium","1 c.t. gingembre râpé","1 c.t. miel","200g légumes vapeur"],steps:["Mélanger soja + miel + gingembre","Mariner saumon 5min","Poêle feu vif 4min chaque côté","Servir sur légumes"]},
+    {name:"Soupe Poulet Ventre-Plat",tag:"Repas 3 · Anti-gonflement",time:"20min",kcal:300,prot:42,cost:"~3,20$/port.",color:"#6BAAFF",ing:["150g poulet batch effiloché","500ml bouillon sans sel","Courgette + champignons + céleri","Gingembre + citron + coriandre"],steps:["Bouillon à ébullition + ail + gingembre","Légumes coupés, cuire 8min","Ajouter poulet 2min","Finir citron + herbes"]},
+    {name:"Pancakes Protéinés Bleuets",tag:"Repas 1 · Weekend",time:"12min",kcal:380,prot:36,cost:"~2,40$/port.",color:"#B06BFF",ing:["2 œufs","1 scoop whey vanille (30g)","½ tasse flocons avoine mixés","½ banane écrasée","½ tasse bleuets"],steps:["Mixer avoine en farine","Mélanger tout sauf bleuets","Poêle feu moyen spray coco","2min par côté, garnir bleuets"]},
+  ]},
+  {color:"#FF6BA8",tip:"Semaine 3 : HIIT démarre. Augmenter poids dumbbells de 2–5 lbs.",recipes:[
+    {name:"Bowl Bœuf Poêlé Salsa-Avocat",tag:"Repas 2 · Satisfaisant",time:"15min",kcal:440,prot:50,cost:"~4,80$/port.",color:"#FFB06B",ing:["175g bœuf haché 90% maigre","200g poivrons + oignon sautés","Salsa sans sucre","¼ avocat","Cumin + paprika + ail + chili"],steps:["Revenir poivrons + oignon 3min","Ajouter bœuf + épices, colorer","Égoutter gras excès","Assembler bœuf → salsa → avocat"]},
+    {name:"Avoine Salée Œuf Poché",tag:"Repas 1 · Cocooning",time:"10min",kcal:350,prot:34,cost:"~1,80$/port.",color:"#D4FF6B",ing:["½ tasse flocons avoine","250ml bouillon légumes","2 œufs","Épinards frais","1 c.s. parmesan"],steps:["Cuire avoine dans bouillon","Pocher œufs 3min","Ajouter épinards dans avoine","Garnir œufs + parmesan + paprika"]},
+    {name:"Salade Méditerranéenne Poulet-Feta",tag:"Repas 2 · Frais",time:"10min",kcal:400,prot:46,cost:"~3,90$/port.",color:"#FF6BA8",ing:["175g poulet batch","Chou rouge + carottes râpées","Concombre + tomates cherry","30g feta","Sauce : huile olive + citron + origan"],steps:["Trancher poulet en lamelles","Préparer sauce citron-origan","Assembler légumes en grand bol","Garnir poulet + feta + sauce"]},
+  ]},
+  {color:"#6BFFD4",tip:"Semaine 4 = bilan mi-parcours. Compare les photos. Les résultats sont là.",recipes:[
+    {name:"Tilapia Méditerranéen",tag:"Repas 2 · Léger",time:"12min",kcal:380,prot:50,cost:"~4,20$/port.",color:"#6BAAFF",ing:["200g filet tilapia","Tomates cherry + olives","Ail + origan + citron","1 c.s. huile olive","100g haricots verts"],steps:["Assaisonner tilapia huile + ail + origan","Poêle feu vif 4min chaque côté","Haricots verts vapeur micro-ondes 4min","Dresser avec tomates + olives"]},
+    {name:"Bolognaise Lean Batch 4 portions",tag:"Batch Sunday",time:"25min",kcal:420,prot:48,cost:"~3,60$/port.",color:"#FF6B6B",ing:["500g bœuf haché maigre","2 boîtes tomates en dés","1 poivron + 1 oignon + 2 carottes","Origan + basilic + paprika fumé"],steps:["Revenir oignon + poivron + carotte 4min","Ajouter bœuf, colorer, égoutter gras","Ajouter tomates + épices","Mijoter 15min — 4 Tupperware"]},
+    {name:"Shake Récupération Post-Workout",tag:"Post-entraînement",time:"3min",kcal:350,prot:40,cost:"~2,60$/port.",color:"#6BFFD4",ing:["1 scoop whey chocolat (30g)","150ml lait écrémé","½ banane","1 c.s. amandes hachées","1 c.t. cacao naturel"],steps:["Tout mettre dans le blender","Mixer 30 secondes","Consommer dans les 30–45min post-workout","Sans blender : shake secoué + banane côté"]},
+  ]},
+];
+
+// ── COMPONENTS ────────────────────────────────────────────────────────────────
+const Pill=({children,color=C.acc})=>(
+  <span style={{display:"inline-block",padding:"2px 10px",borderRadius:99,fontSize:11,fontWeight:700,background:color+"20",color,border:`1px solid ${color}40`,marginRight:6,marginBottom:4}}>{children}</span>
+);
+
+const Kpi=({icon,label,value,sub,color=C.acc})=>(
+  <div style={{background:C.s2,border:`1px solid ${C.bd}`,borderRadius:12,padding:"12px 14px"}}>
+    <div style={{color:C.muted,fontSize:9,letterSpacing:1.5,textTransform:"uppercase",marginBottom:3}}>{icon} {label}</div>
+    <div style={{color,fontSize:22,fontWeight:900,lineHeight:1}}>{value}</div>
+    {sub&&<div style={{color:C.muted,fontSize:10,marginTop:3}}>{sub}</div>}
+  </div>
+);
+
+const MealCard=({time,name,foods,kcal,prot,color=C.acc})=>(
+  <div style={{background:C.s3,border:`1px solid ${C.bd}`,borderLeft:`3px solid ${color}`,borderRadius:10,padding:"12px 14px",marginBottom:9}}>
+    <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:7}}>
+      <div>
+        <div style={{color:C.muted,fontSize:9,letterSpacing:1}}>{time}</div>
+        <div style={{fontWeight:700,fontSize:14,color:C.text}}>{name}</div>
+      </div>
+      <div style={{textAlign:"right"}}>
+        <div style={{color,fontWeight:900,fontSize:15,lineHeight:1}}>{kcal}</div>
+        <div style={{color:C.muted,fontSize:10}}>{prot}g prot.</div>
+      </div>
+    </div>
+    {foods.map((f,i)=><div key={i} style={{color:C.muted,fontSize:11,paddingLeft:6,marginBottom:2}}>· {f}</div>)}
+  </div>
+);
+
+const ExCard=({name,muscle,sets,reps,rest,note,color=C.acc})=>(
+  <div style={{background:C.s3,border:`1px solid ${C.bd}`,borderRadius:10,padding:"11px 13px",marginBottom:7}}>
+    <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+      <div>
+        <div style={{fontWeight:700,fontSize:13,color:C.text}}>{name}</div>
+        <div style={{color:C.muted,fontSize:11,marginTop:2}}>{muscle}</div>
+      </div>
+      <div style={{display:"flex",gap:5,flexWrap:"wrap",justifyContent:"flex-end"}}>
+        <Pill color={color}>{sets}×{reps}</Pill>
+        <Pill color={C.muted}>⏱ {rest}</Pill>
+      </div>
+    </div>
+    {note&&<div style={{color:C.ora,fontSize:11,marginTop:5}}>⚡ {note}</div>}
+  </div>
+);
+
+const BulletBlock=({items,color=C.acc,title})=>(
+  <div style={{marginBottom:10}}>
+    {title&&<div style={{color,fontSize:11,fontWeight:700,letterSpacing:1,marginBottom:6}}>{title}</div>}
+    {items.map((t,i)=>(
+      <div key={i} style={{display:"flex",gap:8,marginBottom:7,alignItems:"flex-start"}}>
+        <span style={{color,fontSize:10,marginTop:3,flexShrink:0}}>◆</span>
+        <span style={{color:C.text,fontSize:13,lineHeight:1.5}}>{t}</span>
+      </div>
+    ))}
+  </div>
+);
+
+function Collapse({title,color=C.acc,children,defaultOpen=false}){
+  const [open,setOpen]=useState(defaultOpen);
+  return(
+    <div style={{border:`1px solid ${C.bd}`,borderRadius:12,overflow:"hidden",marginBottom:10,background:C.s2}}>
+      <button onClick={()=>setOpen(!open)} style={{width:"100%",display:"flex",justifyContent:"space-between",alignItems:"center",padding:"13px 16px",background:"none",border:"none",cursor:"pointer"}}>
+        <span style={{color:C.text,fontWeight:700,fontSize:13}}>{title}</span>
+        <span style={{color,fontSize:14,transform:open?"none":"rotate(-90deg)",transition:"transform .2s"}}>▾</span>
+      </button>
+      {open&&<div style={{padding:"0 16px 14px"}}>{children}</div>}
+    </div>
+  );
+}
+
+function RecipeCard({recipe}){
+  const [open,setOpen]=useState(false);
+  return(
+    <div style={{background:C.s2,border:`1px solid ${C.bd}`,borderLeft:`3px solid ${recipe.color}`,borderRadius:11,marginBottom:9,overflow:"hidden"}}>
+      <button onClick={()=>setOpen(!open)} style={{width:"100%",padding:"12px 14px",background:"none",border:"none",cursor:"pointer",textAlign:"left"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+          <div style={{flex:1}}>
+            <div style={{color:C.muted,fontSize:9,letterSpacing:1,marginBottom:2}}>{recipe.tag}</div>
+            <div style={{fontWeight:700,fontSize:14,color:C.text}}>{recipe.name}</div>
+            <div style={{display:"flex",gap:9,marginTop:3,fontSize:11,color:C.muted}}>
+              <span>⏱ {recipe.time}</span>
+              <span style={{color:recipe.color}}>💰 {recipe.cost}</span>
+            </div>
+          </div>
+          <div style={{textAlign:"right",flexShrink:0,marginLeft:12}}>
+            <div style={{color:recipe.color,fontWeight:900,fontSize:15}}>{recipe.kcal} kcal</div>
+            <div style={{color:C.muted,fontSize:10}}>{recipe.prot}g prot.</div>
+            <div style={{color:C.muted,fontSize:13,marginTop:4}}>{open?"▲":"▼"}</div>
+          </div>
+        </div>
+      </button>
+      {open&&(
+        <div style={{padding:"0 14px 13px",borderTop:`1px solid ${C.bd}`}}>
+          <div style={{color:recipe.color,fontSize:10,fontWeight:700,letterSpacing:1,marginTop:10,marginBottom:5}}>INGRÉDIENTS</div>
+          {recipe.ing.map((ing,i)=><div key={i} style={{color:C.muted,fontSize:11,paddingLeft:6,marginBottom:2}}>· {ing}</div>)}
+          <div style={{color:recipe.color,fontSize:10,fontWeight:700,letterSpacing:1,marginTop:10,marginBottom:5}}>PRÉPARATION</div>
+          {recipe.steps.map((s,i)=>(
+            <div key={i} style={{display:"flex",gap:7,marginBottom:6}}>
+              <span style={{color:recipe.color,fontSize:10,fontWeight:700,minWidth:16,marginTop:2}}>{i+1}.</span>
+              <span style={{fontSize:12,lineHeight:1.5,color:C.text}}>{s}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TaskItem({task,checked,onToggle,color}){
+  return(
+    <button onClick={onToggle} style={{width:"100%",display:"flex",alignItems:"center",gap:11,borderRadius:9,border:`1px solid ${checked?color+"50":C.bd}`,padding:"10px 13px",marginBottom:5,cursor:"pointer",textAlign:"left",background:checked?color+"15":C.s2,transition:"all .15s"}}>
+      <div style={{width:21,height:21,borderRadius:6,border:`2px solid ${checked?color:C.muted2}`,background:checked?color:"transparent",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",transition:"all .15s"}}>
+        {checked&&<span style={{color:"#000",fontSize:12,fontWeight:900}}>✓</span>}
+      </div>
+      <span style={{fontSize:12,lineHeight:1.4,flex:1,color:checked?C.muted:C.text,textDecoration:checked?"line-through":"none"}}>{task.t}</span>
+    </button>
+  );
+}
+
+// ── PROGRESS HELPERS ──────────────────────────────────────────────────────────
+function weekProg(wi,checks){
+  let t=0,d=0;
+  for(let di=0;di<7;di++){buildTasks(wi,di).forEach(tk=>{t++;if(checks[`${wi}-${di}-${tk.id}`])d++;});}
+  return {t,d,pct:t>0?Math.round(d/t*100):0};
+}
+function dayProg(wi,di,checks){
+  const tasks=buildTasks(wi,di);
+  const d=tasks.filter(t=>checks[`${wi}-${di}-${t.id}`]).length;
+  return {t:tasks.length,d,pct:tasks.length>0?Math.round(d/tasks.length*100):0};
+}
+function globalPct(checks){
+  let t=0,d=0;
+  for(let w=0;w<TOTAL_WEEKS;w++){const p=weekProg(w,checks);t+=p.t;d+=p.d;}
+  return t>0?Math.round(d/t*100):0;
+}
+
+const catColors={"🌅 Matin":C.ora,"🍽️ Repas":C.acc,"💪 Entraînement":C.pink,"🏃 Cardio":C.red,"💧 Eau":C.blue,"💊 Suppléments":C.teal,"🌙 Sommeil":C.purple,"⚖️ Pesée & Bilan":C.acc,"🍱 Meal Prep":C.ora,"📅 Organisation":C.blue,"💆 Self Care":C.pink};
+
+const TABS=[
+  {id:"dash",icon:"🏠",lbl:"HOME"},
+  {id:"plan",icon:"📅",lbl:"PLAN"},
+  {id:"repas",icon:"🍽️",lbl:"REPAS"},
+  {id:"epicerie",icon:"🛒",lbl:"ÉPICERIE"},
+  {id:"fitness",icon:"💪",lbl:"FITNESS"},
+  {id:"supps",icon:"💊",lbl:"SUPPLÉMENTS"},
+  {id:"coaching",icon:"🧠",lbl:"COACHING"},
+  {id:"sante",icon:"⌚",lbl:"SANTÉ"},
+  {id:"stats",icon:"📈",lbl:"STATS"},
+];
+
+// ── MAIN APP ──────────────────────────────────────────────────────────────────
+function App(){
+  const [tab,setTab]=useState("dash");
+  const [view,setView]=useState("home");
+  const [wi,setWi]=useState(0);
+  const [di,setDi]=useState(0);
+  const [checks,setChecks]=useState(()=>{try{const v=localStorage.getItem("gu2");return v?JSON.parse(v):{}}catch{return {};}});
+  const [openRec,setOpenRec]=useState(null);
+
+  useEffect(()=>{try{localStorage.setItem("gu2",JSON.stringify(checks));}catch{}},[checks]);
+
+  const toggle=(key)=>setChecks(p=>({...p,[key]:!p[key]}));
+  const gPct=globalPct(checks);
+  const isMax=todayW<10;
+
+  const goToday=()=>{setTab("plan");setView("day");setWi(todayW);setDi(todayD);};
+
+  return(
+    <div style={{background:C.bg,minHeight:"100vh",color:C.text,fontFamily:"system-ui,-apple-system,sans-serif",maxWidth:820,margin:"0 auto",paddingBottom:80}}>
+
+      {/* HEADER */}
+      <div style={{padding:"24px 16px 14px",background:`linear-gradient(180deg,#0C0C1A,${C.bg})`,borderBottom:`1px solid ${C.bd}`,position:"sticky",top:0,zIndex:30,backdropFilter:"blur(16px)"}}>
+        <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:8}}>
+          <div style={{width:6,height:6,borderRadius:"50%",background:C.acc,boxShadow:`0 0 8px ${C.acc}`}}/>
+          <span style={{color:C.muted,fontSize:10,letterSpacing:2,textTransform:"uppercase"}}>{diffDays>=0?`JOUR ${diffDays+1} · SEM. ${todayW+1}`:"DÉMARRE LUNDI PROCHAIN"}</span>
+        </div>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end"}}>
+          <div>
+            <h1 style={{margin:0,fontSize:22,fontWeight:900,lineHeight:1.1,letterSpacing:-0.5}}>GLOW UP<br/><span style={{color:C.acc}}>190 → 160 LBS</span></h1>
+            <p style={{color:C.muted,fontSize:11,margin:"5px 0 8px"}}>{isMax?"🔥 PHASE MAX · 1 350 kcal · 145g prot. · IF 16:8":"✨ PHASE FINISH · 1 450 kcal · 140g prot. · IF 16:8"}</p>
+            <div>{[isMax?"🔥 Phase MAX":"✨ Phase FINISH","IF 16:8","18 semaines","–30 lbs"].map((t,i)=><Pill key={i} color={i===0?isMax?C.red:C.teal:i===1?C.blue:i===2?C.ora:C.pink}>{t}</Pill>)}</div>
+          </div>
+          <div style={{textAlign:"right"}}>
+            <div style={{color:C.acc,fontWeight:900,fontSize:28,lineHeight:1}}>{gPct}%</div>
+            <div style={{color:C.muted,fontSize:10}}>plan global</div>
+          </div>
+        </div>
+        <div style={{marginTop:10,background:C.s3,borderRadius:99,height:4,overflow:"hidden"}}>
+          <div style={{width:`${gPct}%`,height:"100%",background:`linear-gradient(90deg,${C.pink},${C.acc})`,borderRadius:99,transition:"width .4s"}}/>
+        </div>
+      </div>
+
+      {/* TOP NAV */}
+      <div style={{display:"flex",gap:3,padding:"8px 10px",borderBottom:`1px solid ${C.bd}`,overflowX:"auto",scrollbarWidth:"none",position:"sticky",top:110,zIndex:20,background:C.bg+"F0",backdropFilter:"blur(12px)"}}>
+        {TABS.map(t=>(
+          <button key={t.id} onClick={()=>{setTab(t.id);setView("home");}} style={{padding:"6px 11px",borderRadius:7,border:"none",cursor:"pointer",whiteSpace:"nowrap",fontSize:11,fontWeight:700,flexShrink:0,transition:"all .15s",background:tab===t.id?C.acc:C.s2,color:tab===t.id?"#000":C.muted}}>
+            {t.icon} {t.lbl}
+          </button>
+        ))}
+      </div>
+
+      <div style={{padding:"16px 14px"}}>
+
+        {/* ═══ DASH ═══ */}
+        {tab==="dash"&&(
+          <div>
+            {/* Phase banner */}
+            <div style={{background:isMax?C.redD:C.tealD,border:`1px solid ${isMax?C.red:C.teal}40`,borderRadius:13,padding:"14px 16px",marginBottom:13}}>
+              <div style={{color:isMax?C.red:C.teal,fontWeight:700,fontSize:12,marginBottom:7}}>{isMax?"🔥 PHASE MAX — SEMAINES 1–10":"✨ PHASE FINISH — SEMAINES 11–18"}</div>
+              <p style={{fontSize:13,color:C.text,lineHeight:1.6,marginBottom:10}}>{isMax?"1 350 kcal/jour · fenêtre 12h00–19h30 · 45min cardio · zéro féculent repas 2":"1 450 kcal/jour · fenêtre 12h00–20h00 · 30min cardio · féculents réintroduits"}</p>
+              <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
+                {["06h30 Réveil","07h–12h JEÛNE ☕","12h00 REPAS 1","15h30 REPAS 2",isMax?"18h30 REPAS 3":"18h30 REPAS 3",isMax?"19h30 🚫 FIN":"20h00 🚫 FIN"].map((s,i)=>(
+                  <span key={i} style={{padding:"4px 8px",borderRadius:6,fontSize:10,fontWeight:700,background:i===0||i===5?C.muted2:i===1?"rgba(107,170,255,.2)":isMax?"rgba(212,255,107,.2)":"rgba(107,255,212,.2)",color:i===0||i===5?C.muted:i===1?C.blue:isMax?C.acc:C.teal}}>{s}</span>
+                ))}
+              </div>
+            </div>
+
+            {/* KPIs */}
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:10}}>
+              <Kpi icon="🔥" label="Calories / jour" value={isMax?"1 350":"1 450"} sub={"Phase "+(isMax?"MAX":"FINISH")} color={C.acc}/>
+              <Kpi icon="💪" label="Protéines" value={isMax?"145g":"140g"} sub="1,65g / lb maigre" color={C.teal}/>
+              <Kpi icon="📉" label="Déficit / jour" value={isMax?"–1 150":"–1 050"} sub="vs TDEE ~2 500 kcal" color={C.red}/>
+              <Kpi icon="📊" label="Perte visée" value={isMax?"~1,8 lb/sem":"~1,2 lb/sem"} sub="Rythme sécuritaire" color={C.pink}/>
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:14}}>
+              <Kpi icon="💧" label="Eau" value="3,5L" sub="min. absolu" color={C.blue}/>
+              <Kpi icon="👟" label="Pas" value="10 000" sub="cible quotidienne" color={C.ora}/>
+              <Kpi icon="🌙" label="Sommeil" value="7h" sub="22h → 06h30" color={C.purple}/>
+            </div>
+
+            {/* Week type */}
+            <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:5,marginBottom:14}}>
+              {[{d:"LUN",type:"work",train:"Lower"},{d:"MAR",type:"work",train:"Cardio"},{d:"MER",type:"work",train:"Upper"},{d:"JEU",type:"work",train:"Cardio"},{d:"VEN",type:"off",train:"Lower"},{d:"SAM",type:"off",train:"Upper"},{d:"DIM",type:"reset",train:"Reset"}].map((day,i)=>(
+                <div key={i} style={{background:day.type==="reset"?C.tealD:day.type==="off"?C.pinkD:C.s2,border:`1px solid ${day.type==="reset"?"rgba(107,255,212,.4)":day.type==="off"?"rgba(255,107,168,.3)":C.bd}`,borderRadius:9,padding:"8px 3px",textAlign:"center"}}>
+                  <div style={{color:day.type==="reset"?C.teal:day.type==="off"?C.pink:C.muted,fontSize:9,fontWeight:700}}>{day.d}</div>
+                  <div style={{fontSize:8,marginTop:2}}>{day.type==="work"?"💼":day.type==="reset"?"♻️":"🌤️"}</div>
+                  <div style={{color:C.acc,fontSize:9,marginTop:2}}>{day.train}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Today button */}
+            <button onClick={goToday} style={{width:"100%",background:`linear-gradient(135deg,${C.pinkD},${C.accD})`,border:`1px solid ${C.accB}`,borderRadius:13,padding:"13px 16px",cursor:"pointer",textAlign:"left",marginBottom:12}}>
+              <div style={{color:C.acc,fontSize:10,fontWeight:700,letterSpacing:1}}>→ AUJOURD'HUI</div>
+              <div style={{color:C.text,fontWeight:700,fontSize:16,marginTop:3}}>{DFULL[todayD]} {fmt(getDate(todayW,todayD))} · Sem. {todayW+1}</div>
+              <div style={{color:C.muted,fontSize:11,marginTop:2}}>Voir ma journée complète →</div>
+            </button>
+          </div>
+        )}
+
+        {/* ═══ PLAN ═══ */}
+        {tab==="plan"&&view==="home"&&(
+          <div>
+            <button onClick={goToday} style={{width:"100%",background:`linear-gradient(135deg,${C.pinkD},${C.accD})`,border:`1px solid ${C.accB}`,borderRadius:13,padding:"12px 16px",cursor:"pointer",textAlign:"left",marginBottom:14}}>
+              <div style={{color:C.acc,fontSize:10,fontWeight:700,letterSpacing:1}}>→ AUJOURD'HUI</div>
+              <div style={{color:C.text,fontWeight:700,fontSize:16,marginTop:3}}>{DFULL[todayD]} {fmt(getDate(todayW,todayD))}</div>
+              <div style={{color:C.muted,fontSize:11,marginTop:2}}>Ouvrir ma journée →</div>
+            </button>
+            <div style={{color:C.muted,fontSize:10,letterSpacing:2,textTransform:"uppercase",marginBottom:10}}>TOUTES LES SEMAINES</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+              {Array.from({length:TOTAL_WEEKS},(_,w)=>{
+                const p=weekProg(w,checks);
+                const col=WEEK_COLORS[w];
+                const isCurr=w===todayW;
+                return(
+                  <button key={w} onClick={()=>{setWi(w);setView("week");}} style={{background:isCurr?col+"18":C.s2,border:`1px solid ${isCurr?col+"50":C.bd}`,borderRadius:12,padding:"11px 13px",cursor:"pointer",textAlign:"left"}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                      <div style={{color:col,fontSize:10,fontWeight:700}}>SEM. {w+1}</div>
+                      <div style={{color:p.pct===100?C.acc:p.pct>50?C.ora:C.muted,fontWeight:900,fontSize:17}}>{p.pct}%</div>
+                    </div>
+                    <div style={{color:C.text,fontSize:11,fontWeight:600,marginTop:2}}>{THEMES[w]}</div>
+                    <div style={{color:C.muted,fontSize:9,marginTop:1}}>{fmt(getDate(w,0))}</div>
+                    {isCurr&&<div style={{color:col,fontSize:8,fontWeight:700,marginTop:3}}>◆ EN COURS</div>}
+                    <div style={{marginTop:7,background:C.s3,borderRadius:99,height:3}}>
+                      <div style={{width:`${p.pct}%`,height:"100%",background:col,borderRadius:99}}/>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {tab==="plan"&&view==="week"&&(()=>{
+          const col=WEEK_COLORS[wi];
+          const p=weekProg(wi,checks);
+          const rr=RECIPES[Math.min(wi,RECIPES.length-1)];
+          return(
+            <div>
+              <button onClick={()=>setView("home")} style={{background:C.s2,border:`1px solid ${C.bd}`,borderRadius:8,padding:"6px 13px",color:C.muted,cursor:"pointer",fontSize:11,fontWeight:700,marginBottom:12}}>← Toutes les semaines</button>
+              <div style={{background:col+"18",border:`1px solid ${col}40`,borderRadius:13,padding:"14px 16px",marginBottom:12}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                  <div>
+                    <div style={{color:C.muted,fontSize:9,letterSpacing:2,textTransform:"uppercase"}}>SEMAINE {wi+1}</div>
+                    <div style={{color:C.text,fontSize:16,fontWeight:900,marginTop:3}}>{THEMES[wi]}</div>
+                    <div style={{color:C.muted,fontSize:11,marginTop:2}}>{fmt(getDate(wi,0))} → {fmt(getDate(wi,6))}</div>
+                  </div>
+                  <div style={{textAlign:"right"}}>
+                    <div style={{color:col,fontWeight:900,fontSize:24,lineHeight:1}}>{p.pct}%</div>
+                    <div style={{color:C.muted,fontSize:10}}>semaine</div>
+                  </div>
+                </div>
+                <div style={{marginTop:10,background:C.s3,borderRadius:99,height:4}}>
+                  <div style={{width:`${p.pct}%`,height:"100%",background:col,borderRadius:99}}/>
+                </div>
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:4,marginBottom:14}}>
+                {DNAMES.map((n,d)=>{
+                  const dp=dayProg(wi,d,checks);
+                  return(
+                    <button key={d} onClick={()=>{setDi(d);setView("day");}} style={{background:dp.pct===100?"rgba(212,255,107,.12)":C.s2,border:`1px solid ${dp.pct===100?"rgba(212,255,107,.4)":C.bd}`,borderRadius:9,padding:"8px 3px",textAlign:"center",cursor:"pointer"}}>
+                      <div style={{color:d===6?C.acc:C.muted,fontSize:9,fontWeight:700}}>{n}</div>
+                      <div style={{color:C.muted,fontSize:8,marginTop:1}}>{fmt(getDate(wi,d))}</div>
+                      <div style={{color:dp.pct===100?C.acc:dp.pct>50?C.ora:C.muted,fontWeight:900,fontSize:12,marginTop:3}}>{dp.pct}%</div>
+                    </button>
+                  );
+                })}
+              </div>
+              <div style={{background:rr.color+"12",border:`1px solid ${rr.color}30`,borderRadius:10,padding:"12px 14px"}}>
+                <div style={{color:rr.color,fontWeight:700,fontSize:11,letterSpacing:1,marginBottom:5}}>💡 TIP SEMAINE {wi+1}</div>
+                <p style={{fontSize:13,color:C.text,lineHeight:1.5}}>{rr.tip}</p>
+              </div>
+            </div>
+          );
+        })()}
+
+        {tab==="plan"&&view==="day"&&(()=>{
+          const tasks=buildTasks(wi,di);
+          const dp=dayProg(wi,di,checks);
+          const col=WEEK_COLORS[wi];
+          const isSun=di===6,isWork=di<4;
+          const cats=[...new Set(tasks.map(t=>t.cat))];
+          return(
+            <div>
+              <button onClick={()=>setView("week")} style={{background:C.s2,border:`1px solid ${C.bd}`,borderRadius:8,padding:"6px 13px",color:C.muted,cursor:"pointer",fontSize:11,fontWeight:700,marginBottom:12}}>← Semaine {wi+1}</button>
+              <div style={{display:"flex",gap:4,overflowX:"auto",scrollbarWidth:"none",marginBottom:12}}>
+                {DNAMES.map((n,i)=>(
+                  <button key={i} onClick={()=>setDi(i)} style={{padding:"5px 11px",borderRadius:7,border:"none",cursor:"pointer",fontWeight:700,fontSize:10,whiteSpace:"nowrap",background:i===di?C.acc:C.s2,color:i===di?"#000":C.muted,flexShrink:0}}>{n}</button>
+                ))}
+              </div>
+              <div style={{background:`linear-gradient(135deg,${col}12,${C.s1})`,border:`1px solid ${col}30`,borderRadius:13,padding:"14px 16px",marginBottom:13}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+                  <div>
+                    <div style={{color:isSun?C.acc:isWork?C.blue:C.pink,fontSize:9,fontWeight:700,letterSpacing:2,textTransform:"uppercase"}}>{isSun?"♻️ RESET DAY":isWork?"💼 JOUR TRAVAIL":"🌤️ JOUR OFF"}</div>
+                    <div style={{fontSize:20,fontWeight:900,marginTop:3}}>{DFULL[di]}</div>
+                    <div style={{color:C.muted,fontSize:12,marginTop:2}}>{fmt(getDate(wi,di))} · Sem. {wi+1} · {wi<10?"🔥 MAX":"✨ FINISH"}</div>
+                  </div>
+                  <div style={{textAlign:"right"}}>
+                    <div style={{color:dp.pct===100?C.acc:C.ora,fontWeight:900,fontSize:28,lineHeight:1}}>{dp.pct}%</div>
+                    <div style={{color:C.muted,fontSize:10}}>{dp.d}/{dp.t} tâches</div>
+                  </div>
+                </div>
+                <div style={{marginTop:11,background:C.s3,borderRadius:99,height:4}}>
+                  <div style={{width:`${dp.pct}%`,height:"100%",background:dp.pct===100?C.acc:C.ora,borderRadius:99,transition:"width .3s"}}/>
+                </div>
+                {dp.pct===100&&<div style={{color:C.acc,fontSize:11,fontWeight:700,marginTop:8,textAlign:"center"}}>✨ JOURNÉE COMPLÈTE — TU DÉCHIRES !</div>}
+              </div>
+              {cats.map(cat=>{
+                const color=catColors[cat]||C.acc;
+                return(
+                  <div key={cat}>
+                    <div style={{color,fontSize:10,fontWeight:700,letterSpacing:1,marginBottom:5,paddingLeft:2}}>{cat}</div>
+                    {tasks.filter(t=>t.cat===cat).map(task=>{
+                      const key=`${wi}-${di}-${task.id}`;
+                      return <TaskItem key={task.id} task={task} checked={!!checks[key]} onToggle={()=>toggle(key)} color={color}/>;
+                    })}
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })()}
+
+        {/* ═══ REPAS ═══ */}
+        {tab==="repas"&&(
+          <div>
+            <div style={{background:isMax?C.redD:C.tealD,border:`1px solid ${isMax?C.red:C.teal}40`,borderRadius:12,padding:"12px 16px",marginBottom:12}}>
+              <div style={{color:isMax?C.red:C.teal,fontWeight:700,fontSize:12,marginBottom:5}}>{isMax?"🔥 PHASE MAX · 1 350 kcal":"✨ PHASE FINISH · 1 450 kcal"}</div>
+              <div style={{color:C.text,fontSize:13}}>{isMax?"Fenêtre 12h00–19h30 · zéro féculent repas 2 · 145g prot.":"Fenêtre 12h00–20h00 · féculents réintroduits · 140g prot."}</div>
+            </div>
+            <MealCard time="REPAS 1 · 12h00 · BRISURE DU JEÛNE" name={isMax?"Omelette 3 œufs + blancs + légumes":"Omelette 4 œufs + légumes + ½ avocat"} foods={isMax?["3 œufs + 2 blancs d'œuf","Épinards + poivron + champignons","Paprika fumé + sel rose"]:["4 œufs entiers","Épinards + poivron + ½ avocat","Café noir ou thé vert"]} kcal={isMax?"350 kcal":"420 kcal"} prot={isMax?36:38} color={C.acc}/>
+            <MealCard time="REPAS 2 · 15h30 · LUNCH" name={isMax?"Poulet + légumes rôtis (sans féculent)":"Bowl poulet + riz brun + légumes"} foods={isMax?["175g poulet grillé (batch cook)","200g légumes rôtis — ZÉRO riz ni quinoa","Sauce huile olive + citron + herbes"]:["175g poulet grillé (batch cook)","100g riz brun ou quinoa cuit","200g légumes rôtis"]} kcal={isMax?"380 kcal":"480 kcal"} prot={isMax?50:52} color={C.teal}/>
+            <MealCard time={isMax?"REPAS 3 · 18h30 · AVANT 19h30":"REPAS 3 · 18h30–19h30"} name={isMax?"Shake whey + salade":"Shake OU cottage cheese + salade"} foods={isMax?["1 scoop whey (30g) avec eau froide","Grande salade verte + concombre + tomates","10 amandes non salées"]:["Shake whey OU 200g cottage cheese","Grande salade + légumes","10–15 amandes OU ½ avocat"]} kcal={isMax?"300 kcal":"350 kcal"} prot={35} color={C.pink}/>
+            <div style={{textAlign:"center",color:C.muted,fontSize:11,padding:"8px 0 16px"}}>TOTAL : {isMax?"1 030 kcal repas + 320 shake = 1 350 kcal":"1 450 kcal"} · {isMax?145:140}g protéines</div>
+
+            <Collapse title="🍱 MEAL PREP DIMANCHE" color={C.acc} defaultOpen={false}>
+              <BulletBlock color={C.acc} items={["ÉTAPE 1 (30min four) : 1,2kg poulet — huile olive + ail + paprika 200°C — 5 Tupperware de 175g","ÉTAPE 2 (20min) : 200–500g quinoa cuit dans bouillon légumes","ÉTAPE 3 (25min four) : plaque légumes rôtis brocoli + courgette + poivron 220°C","ÉTAPE 4 : 10 œufs durs 10min + stock cottage cheese + yaourt grec 0%","ASSEMBLAGE : 5 boîtes étiquetées L–Ma–Me–Je–Ve. Friction zéro en semaine."]}/>
+            </Collapse>
+
+            <Collapse title="🍔 FAST FOOD CONTRÔLÉ" color={C.ora} defaultOpen={false}>
+              <BulletBlock color={C.ora} items={["McDo/A&W : Grilled Chicken Wrap SANS sauce OU Salade César poulet vinaigrette côté (~350 kcal)","Subway : BOL sans pain — poulet rôti + tous légumes + moutarde (~380 kcal · 42g prot.)","Tim Hortons : café latte lait écrémé SANS sucre OU thé vert — zéro muffin/beigne","Chipotle : Bowl poulet + légumes + salsa — PAS crème sure ni fromage extra"]}/>
+            </Collapse>
+
+            <div style={{color:C.acc,fontSize:11,fontWeight:700,letterSpacing:1.2,textTransform:"uppercase",margin:"16px 0 10px"}}>🍽️ RECETTES PAR SEMAINE</div>
+            {RECIPES.map((wr,wi2)=>(
+              <div key={wi2} style={{marginBottom:20}}>
+                <div style={{color:wr.color,fontSize:11,fontWeight:700,letterSpacing:1,marginBottom:8}}>── SEMAINE {wi2+1} · {THEMES[wi2]} ──</div>
+                {wr.recipes.map((r,ri)=><RecipeCard key={ri} recipe={r}/>)}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* ═══ ÉPICERIE ═══ */}
+        {tab==="epicerie"&&(
+          <div>
+            <div style={{background:C.accD,border:`1px solid ${C.accB}`,borderRadius:12,padding:"12px 16px",marginBottom:12}}>
+              <div style={{color:C.acc,fontWeight:700,fontSize:12,marginBottom:4}}>💰 STRATÉGIE ÉPICERIE · BUDGET ~90–120$/sem</div>
+              <div style={{color:C.text,fontSize:13}}>Costco 1×/mois (gros) · Maxi 1×/semaine (frais) · Super C (promotions)</div>
+            </div>
+            {[
+              {store:"🏪 COSTCO — 1× PAR MOIS",color:C.blue,items:[
+                ["Poitrines de poulet congelées","2kg pack","~16–18$/kg"],
+                ["Œufs grands format","2 douzaines ×2","~12–15$ les 24"],
+                ["Thon en conserve (eau)","Pack 12 boîtes","~15$ le pack"],
+                ["Saumon atlantique congelé","1kg","~20–22$"],
+                ["Whey protéine","1 grand format","~45–55$/2kg"],
+                ["Flocons d'avoine","4kg sac","~12–15$"],
+                ["Amandes non salées","1kg sac","~14–16$"],
+                ["Huile d'olive extra vierge","3L","~18–22$"],
+              ]},
+              {store:"🟡 MAXI — CHAQUE SEMAINE",color:C.acc,items:[
+                ["Épinards bébé (grand sac)","1 sac 312g","~3,50$"],
+                ["Brocoli","2 têtes","~3$"],
+                ["Courgettes","3 unités","~3$"],
+                ["Poivrons tricolores","1 sac 3×","~4$"],
+                ["Tomates cherry","1 pinte","~4$"],
+                ["Concombre","2 unités","~2,50$"],
+                ["Avocats","4 unités","~5–6$"],
+                ["Citrons","1 filet 6×","~2,50$"],
+                ["Patate douce (Phase FINISH)","2–3 unités","~3$"],
+                ["Cottage cheese 2%","2 × 750g","~6–8$"],
+                ["Yaourt grec 0%","2 × 500g","~7–8$"],
+                ["Bleuets frais ou surgelés","1 sac 600g","~5$"],
+              ]},
+              {store:"🔴 SUPER C — PROMOTIONS",color:C.red,items:[
+                ["Thon en conserve si spécial","< 1,50$/boîte","promo"],
+                ["Légumes surgelés urgence","brocoli · haricots verts","~3–4$"],
+                ["Tilapia ou pangasius congelé","500g","~8–10$/kg"],
+                ["Bouillon poulet sans sel","1L ×2","~4$"],
+              ]},
+            ].map(({store,color,items})=>(
+              <Collapse key={store} title={store} color={color} defaultOpen={store.includes("MAXI")}>
+                <div style={{background:C.s3,borderRadius:10,padding:"12px 14px"}}>
+                  {items.map(([name,qty,price],i)=>(
+                    <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"7px 0",borderBottom:`1px solid ${C.bd}`}}>
+                      <span style={{color:C.text,fontSize:13}}>□ {name}</span>
+                      <div style={{textAlign:"right"}}>
+                        <div style={{color,fontSize:11,fontWeight:700}}>{qty}</div>
+                        <div style={{color:C.muted,fontSize:10}}>{price}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Collapse>
+            ))}
+          </div>
+        )}
+
+        {/* ═══ FITNESS ═══ */}
+        {tab==="fitness"&&(
+          <div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>
+              <Kpi icon="💪" label="Séances/sem" value="4" sub="Lun · Mer · Ven · Sam" color={C.acc}/>
+              <Kpi icon="🏃" label="Cardio/jour" value={isMax?"45min":"30min"} sub={isMax?"zone 2+3":"zone 2"} color={C.pink}/>
+              <Kpi icon="👟" label="Pas/jour" value="10 000" sub="cible quotidienne" color={C.ora}/>
+              <Kpi icon="❤️" label="FC cardio" value={isMax?"135–155":"115–135"} sub="bpm zone cible" color={C.red}/>
+            </div>
+            <Collapse title="🏃 CARDIO — PROGRESSION MAX" color={C.pink} defaultOpen={true}>
+              {[
+                {phase:"SEMAINES 1–2 · Fondation",color:C.red,items:["30min marche rapide quotidienne — AVANT de rentrer (pas après)","FC zone 2 (115–135 bpm) — Apple Watch mode Marche","Objectif 8 000 pas → 10 000 pas d'ici sem. 2"]},
+                {phase:"SEMAINES 3–6 · HIIT Introduit",color:C.ora,items:["35min marche rapide + 10min HIIT (1min jogging / 1min marche × 5)","Calories brûlées cible : 350–450 kcal/session Apple Watch","FC zone 3 (135–155 bpm) pendant les intervals"]},
+                {phase:"SEMAINES 7–10 · Intensité MAX",color:C.acc,items:["25min marche + 20min HIIT complet (jumping jacks, high knees, squat jumps)","Total session 45min · calories brûlées 400–500 kcal","2 sessions HIIT dédiées : mardi + jeudi · reste = marche zone 2"]},
+              ].map(({phase,color,items})=>(
+                <div key={phase} style={{background:color+"15",border:`1px solid ${color}30`,borderRadius:10,padding:"12px 14px",marginBottom:8}}>
+                  <div style={{color,fontWeight:700,fontSize:11,marginBottom:6}}>{phase}</div>
+                  <BulletBlock items={items} color={color}/>
+                </div>
+              ))}
+            </Collapse>
+            <Collapse title="💪 JOUR A — LOWER BODY (Lun + Ven)" color={C.acc} defaultOpen={true}>
+              <ExCard name="Goblet Squat" muscle="Quadriceps · Fessiers · Core" sets={3} reps="12–15" rest="60s" note="Dumbbell contre la poitrine · dos plat · genoux dans l'axe" color={C.acc}/>
+              <ExCard name="Romanian Deadlift" muscle="Ischio-jambiers · Fessiers" sets={3} reps="12" rest="60s" note="DOS PLAT absolu · hanches reculées · chargement progressif" color={C.acc}/>
+              <ExCard name="Fentes alternées" muscle="Quadriceps · Fessiers · Équilibre" sets={3} reps="10/côté" rest="60s" color={C.acc}/>
+              <ExCard name="Hip Thrust Dumbbell" muscle="Grand fessier — zone ciblée" sets={3} reps="15" rest="60s" note="Épaules sur canapé · dumbbell sur hanches · poussée explosive" color={C.acc}/>
+              <ExCard name="Élévation mollets" muscle="Mollets" sets={3} reps="20" rest="30s" color={C.acc}/>
+              <ExCard name="Planche frontale" muscle="Core profond · Abdos" sets={3} reps="30–60s" rest="30s" note="Progression → 60s dès sem. 4" color={C.acc}/>
+            </Collapse>
+            <Collapse title="💪 JOUR B — UPPER BODY (Mer + Sam)" color={C.teal} defaultOpen={false}>
+              <ExCard name="Arnold Press" muscle="Épaules · Triceps" sets={3} reps="12" rest="60s" note="Mouvement rotatif — sculpte épaules rondes féminines" color={C.teal}/>
+              <ExCard name="Rowing unilatéral" muscle="Dos · Biceps · Posture" sets={3} reps="12/côté" rest="60s" note="Genou + main sur chaise · dos plat · coude haut" color={C.teal}/>
+              <ExCard name="Fly latéral debout" muscle="Épaules médiales — largeur" sets={3} reps="15" rest="45s" color={C.teal}/>
+              <ExCard name="Curl biceps alterné" muscle="Biceps · Avant-bras" sets={3} reps="12" rest="45s" note="⚠️ Fracture : commence 2–5 lbs · augmente progressivement" color={C.teal}/>
+              <ExCard name="Extension triceps overhead" muscle="Triceps — arrière des bras" sets={3} reps="12" rest="45s" color={C.teal}/>
+              <ExCard name="Crunch obliques" muscle="Obliques · Taille" sets={3} reps="15/côté" rest="30s" color={C.teal}/>
+            </Collapse>
+            <Collapse title="⚡ VERSION MINIMUM EFFORT" color={C.ora} defaultOpen={false}>
+              <BulletBlock color={C.ora} items={["RÈGLE : quelque chose > rien — même 15min = victoire","Option A (15min) : goblet squat · hip thrust · planche 3×","Option B (20min) : marche rapide uniquement — Apple Watch ferme quand même","Option C (10min) : 100 squats répartis dans la journée (25 × 4)","JAMAIS annuler complètement — modifier oui, annuler non"]}/>
+            </Collapse>
+          </div>
+        )}
+
+        {/* ═══ SUPPLÉMENTS ═══ */}
+        {tab==="supps"&&(
+          <div>
+            {[
+              {title:"⭐ PRIORITÉ 1 — PRENDRE DÈS MAINTENANT",color:C.acc,items:[
+                {name:"Whey Protéine",dose:"1 scoop 30g / jour",detail:"Post-workout (Whey) OU avant dodo (Caséine). Atteindre 145g/jour sans = quasi impossible. ~120 kcal · 25–30g prot."},
+                {name:"Créatine Monohydrate",dose:"3–5g / jour",detail:"Force +15–20% · rétention musculaire en déficit · énergie cellulaire. Légère rétention eau intramusculaire (non visible). Pas besoin de cycliser."},
+                {name:"Magnésium Bisglycinate",dose:"300–400mg avant dodo",detail:"Améliore sommeil profond · réduit cortisol · fringales sucrées. 70% des femmes en déficience."},
+              ]},
+              {title:"💊 PRIORITÉ 2 — FORTEMENT RECOMMANDÉS",color:C.teal,items:[
+                {name:"Vitamine D3 + K2",dose:"2000 UI D3 + 100mcg K2 / matin",detail:"Déficience quasi-universelle au Québec. Humeur · énergie · immunité · hormones."},
+                {name:"Oméga-3 (EPA+DHA)",dose:"2–3g / jour avec repas",detail:"Anti-inflammatoire · composition corporelle · concentration · hormones. Marque : Nordic Naturals."},
+              ]},
+            ].map(({title,color,items})=>(
+              <div key={title} style={{marginBottom:14}}>
+                <div style={{color,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",marginBottom:8}}>{title}</div>
+                {items.map((s,i)=>(
+                  <div key={i} style={{background:C.s3,border:`1px solid ${C.bd}`,borderRadius:10,padding:"12px 14px",marginBottom:8}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:5}}>
+                      <div style={{fontWeight:700,fontSize:14,color:C.text}}>{s.name}</div>
+                      <span style={{color,fontSize:10,fontWeight:700,background:color+"20",padding:"2px 8px",borderRadius:99,border:`1px solid ${color}40`}}>{s.dose}</span>
+                    </div>
+                    <p style={{color:C.muted,fontSize:12,lineHeight:1.5,margin:0}}>{s.detail}</p>
+                  </div>
+                ))}
+              </div>
+            ))}
+            <div style={{marginBottom:14}}>
+              <div style={{color:C.red,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",marginBottom:8}}>❌ NE PAS ACHETER — ARNAQUE</div>
+              <BulletBlock color={C.red} items={["Brûleurs de graisse : dangereux · stimulants · détruisent le sommeil","Thés détox / teatox : laxatifs déguisés — perte d'eau, pas de gras","CLA, L-Carnitine, HMB : bénéfices marginaux — dépense inutile","Collagène en poudre : alimentation high protein = meilleure source"]}/>
+            </div>
+            <div style={{background:C.s2,border:`1px solid ${C.bd}`,borderRadius:12,padding:"14px 16px"}}>
+              <div style={{color:C.muted,fontSize:10,letterSpacing:1.5,textTransform:"uppercase",marginBottom:10}}>💰 COÛTS ESTIMÉS / MOIS</div>
+              {[["Whey protéine (30 doses)","~40–55$"],["Créatine monohydrate","~15–20$"],["Magnésium bisglycinate","~20–25$"],["D3 + K2","~15–20$"],["Oméga-3","~25–35$"],["TOTAL / mois","~115–155$"]].map(([l,v],i)=>(
+                <div key={i} style={{display:"flex",justifyContent:"space-between",padding:"7px 0",borderBottom:`1px solid ${C.bd}`}}>
+                  <span style={{color:C.muted,fontSize:12}}>{l}</span>
+                  <span style={{color:i===5?C.acc:C.text,fontSize:12,fontWeight:i===5?700:400}}>{v}</span>
+                </div>
+              ))}
+              <p style={{color:C.muted,fontSize:11,marginTop:8}}>→ Amazon ou iHerb = 20–30% moins cher qu'en pharmacie</p>
+            </div>
+          </div>
+        )}
+
+        {/* ═══ COACHING ═══ */}
+        {tab==="coaching"&&(
+          <div>
+            {[
+              {title:"🧠 PSYCHOLOGIE DE LA TRANSFORMATION",color:C.acc,items:["IDENTITÉ > OBJECTIFS : ne dis plus 'j'essaie de maigrir'. Dis-toi : 'je suis quelqu'un qui prend soin de son corps chaque jour'. L'identité crée les actions.","Ton ennemi = toi le soir, fatiguée, entre 20h et minuit. Solution : fenêtre fermée + dents brossées = signal TERMINÉ.","BEFORE PHOTO aujourd'hui — même lumière, même posture. Elle sera ta plus grande motivation dans 8 semaines."]},
+              {title:"⚡ STRATÉGIES ANTI-PARESSE",color:C.ora,items:["RÈGLE 2 MIN : s'habiller pour l'entraînement = 2min. Une fois habillée, tu y vas 90% du temps.","HABIT STACKING : café matin → 500ml eau. Rentrée → chaussures sport enfilées. Pas de transition.","ENVIRONNEMENT = DESTIN : dumbbells visibles = tu t'entraînes. Chips pas dans la maison = pas de binge à 23h.","RÉCOMPENSE IMMÉDIATE : après chaque séance → 30min série Netflix. Effort → plaisir."]},
+              {title:"🛑 ANTI-FRINGALES",color:C.pink,items:["RÈGLE 20MIN : fringale ? Bois 500ml eau + 20 squats + attends 20min. 80% des fringales disparaissent.","CHEWING-GUM SANS SUCRE pendant les fringales — occupe la bouche, trompe le cerveau.","PRÉ-PORTIONNER le dimanche : amandes dans sachets de 15 unités = décision déjà prise."]},
+              {title:"🛡️ ANTI-BINGE",color:C.red,items:["IDENTIFIER TES TRIGGERS : binge après stress ? Ennui ? Fatigue ? Chaque trigger = plan de remplacement.","ZÉRO NOURRITURE BINGE DANS LA MAISON : si les chips ne sont pas là, impossible de binge à 23h.","SI ÇA ARRIVE : ne culpabilise PAS. 1 écart = normal. Reprends au repas suivant. Abandonner = l'échec.","MANGER ASSEZ (145g prot.) → fringales nocturnes divisées par 3."]},
+              {title:"🔴 CYCLE MENSTRUEL",color:C.purple,items:["PHASE FOLLICULAIRE (Sem. 1–2) : énergie max → pousser les entraînements. Déficit standard.","PHASE LUTÉALE (Sem. 3–4) : fringales sucrées normales → chocolat noir 85%, dattes, fruits.","Rétention eau +1–3 lbs = NORMALE avant les règles — ne panique pas sur la balance.","+100–150 kcal autorisés en phase lutéale. Magnésium double dose (400–500mg)."]},
+              {title:"🎯 HACKS DOPAMINE",color:C.teal,items:["PHOTOS PROGRESS : dimanche · même lumière · même posture · toutes les 2 semaines.","VICTOIRE HEBDO NON-PHYSIQUE : refusé un binge, 7/7 objectif pas, dormi 7h 5 nuits.","VÊTEMENT MOTIVATION : 1 pièce 1 taille en dessous suspendue visible dans ta chambre.","STREAKS APPLE WATCH : fermer les 3 anneaux 7 jours = satisfaction réelle."]},
+            ].map(({title,color,items})=>(
+              <Collapse key={title} title={title} color={color} defaultOpen={false}>
+                <BulletBlock items={items} color={color}/>
+              </Collapse>
+            ))}
+          </div>
+        )}
+
+        {/* ═══ SANTÉ ═══ */}
+        {tab==="sante"&&(
+          <div>
+            <div style={{background:C.blueD,border:`1px solid ${C.blue}40`,borderRadius:13,padding:"14px 16px",marginBottom:14}}>
+              <div style={{color:C.blue,fontWeight:700,fontSize:13,marginBottom:6}}>⌚ APPLE WATCH & SANTÉ — SIMULATION</div>
+              <p style={{fontSize:13,color:C.text,lineHeight:1.6}}>Données simulées semaine par semaine. Pour connecter ta vraie Apple Watch : iOS Raccourcis → lire Apple Santé → exporter ici.</p>
+            </div>
+            {[0,1,2,3].map(w=>{
+              const col=WEEK_COLORS[w];
+              const data=[
+                {icon:"👟",lbl:"Pas/jour",val:(8420+w*350).toLocaleString("fr"),unit:"",c:C.acc},
+                {icon:"🔥",lbl:"Cal. actives",val:430+w*25,unit:"kcal",c:C.ora},
+                {icon:"❤️",lbl:"FC repos",val:68-w,unit:"bpm",c:C.red},
+                {icon:"🌙",lbl:"Sommeil",val:(6.2+w*0.25).toFixed(1),unit:"h",c:C.blue},
+                {icon:"⚖️",lbl:"Poids estimé",val:(190-w*1.8).toFixed(1),unit:"lbs",c:C.pink},
+                {icon:"📊",lbl:"HRV",val:38+w*3,unit:"ms",c:C.teal},
+              ];
+              return(
+                <div key={w} style={{marginBottom:16}}>
+                  <div style={{color:col,fontSize:10,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:7}}>SEMAINE {w+1} · {w<10?"🔥 PHASE MAX":"✨ FINISH"}</div>
+                  <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:7}}>
+                    {data.map((d,i)=>(
+                      <div key={i} style={{background:C.s2,border:`1px solid ${C.bd}`,borderRadius:10,padding:"10px 6px",textAlign:"center"}}>
+                        <div style={{fontSize:18,marginBottom:3}}>{d.icon}</div>
+                        <div style={{color:d.c,fontWeight:900,fontSize:17,lineHeight:1}}>{d.val}</div>
+                        <div style={{color:C.muted,fontSize:8,marginTop:1}}>{d.unit}</div>
+                        <div style={{color:C.muted,fontSize:8}}>{d.lbl}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+            <Collapse title="⌚ RÉGLAGES APPLE WATCH RECOMMANDÉS" color={C.acc} defaultOpen={true}>
+              <BulletBlock color={C.acc} items={["Anneau MOVE : cible 400–500 kcal actives/jour · rappel auto à 18h si < 200 kcal","Suivi sommeil activé — viser sommeil profond > 90min","FC repos affiché sur cadran principal — descendra avec le temps","Rappel pas à 17h30 si < 5 000 pas dans la journée","HRV bas → adapter intensité du jour","Enregistrer chaque séance si l'app ne détecte pas auto"]}/>
+            </Collapse>
+          </div>
+        )}
+
+        {/* ═══ STATS ═══ */}
+        {tab==="stats"&&(
+          <div>
+            <div style={{background:C.s2,border:`1px solid ${C.bd}`,borderRadius:13,padding:"14px 16px",marginBottom:12}}>
+              <div style={{color:C.muted,fontSize:10,letterSpacing:2,textTransform:"uppercase",marginBottom:10}}>📊 JALONS DE POIDS</div>
+              {[
+                {sem:"Départ",w:"190 lbs",note:"Photos avant · mesures initiales",c:C.muted},
+                {sem:"Sem. 2",w:"187–188",note:"🔥 IF + déficit installé",c:C.blue},
+                {sem:"Sem. 4",w:"183–185",note:"🔥 Bilan photos · HIIT démarré",c:C.teal},
+                {sem:"Sem. 6",w:"179–181",note:"🔥 Corps visible · vêtements lâches",c:C.ora},
+                {sem:"Sem. 8",w:"175–177",note:"🔥 Visage affiné · taille –4 po",c:C.acc},
+                {sem:"Sem. 10 🏁",w:"170–172",note:"🔥 PHASE MAX TERMINÉE · –20 lbs",c:C.acc},
+                {sem:"Sem. 12",w:"168–170",note:"✨ FINISH · 1 lb/sem",c:C.pink},
+                {sem:"Sem. 14",w:"165–167",note:"✨ Sculpture musculaire visible",c:C.pink},
+                {sem:"Sem. 16",w:"163–165",note:"✨ Corps transformé",c:C.pink},
+                {sem:"Sem. 18",w:"160–162 ✓",note:"✨ OBJECTIF ATTEINT 🏆",c:C.acc},
+              ].map((m,i)=>(
+                <div key={i} style={{display:"flex",alignItems:"center",gap:9,padding:"7px 11px",marginBottom:4,borderRadius:9,background:m.c===C.acc?C.accD:C.s3,border:`1px solid ${m.c===C.acc?C.accB:C.bd}`}}>
+                  <div style={{color:m.c,fontSize:10,fontWeight:700,minWidth:68}}>{m.sem}</div>
+                  <div style={{color:m.c,fontWeight:900,fontSize:14,minWidth:76}}>{m.w}</div>
+                  <div style={{color:C.muted,fontSize:10}}>{m.note}</div>
+                </div>
+              ))}
+            </div>
+            <Collapse title="📏 PROTOCOLE PESÉE DIMANCHE" color={C.teal} defaultOpen={true}>
+              <BulletBlock color={C.teal} items={["Peser après les toilettes · avant manger · même heure chaque semaine","Ne jamais réagir à 1 chiffre isolé — prends la moyenne 5–7 jours","Rétention eau +1–3 lbs normale (sodium · avant règles · post-entraînement)","Mensurations : taille (nombril) · hanches · cuisse droite · bras droit","Photos toutes les 2 semaines · même lumière · même posture","Les cm descendent AVANT les lbs — photos > balance"]}/>
+            </Collapse>
+            <Collapse title="🔧 AJUSTEMENTS INTELLIGENTS" color={C.ora} defaultOpen={false}>
+              {[
+                {phase:"SI PLATEAU 2+ SEMAINES",color:C.ora,items:["Vérifier d'abord : tracking calorique précis ? (sous-estimation de 20–40% fréquente)","Option A : –100 kcal/jour","Option B : +1 session cardio par semaine","Option C : 1 jour refeed à 1 800 kcal (reset leptine)"]},
+                {phase:"SI FATIGUE EXCESSIVE",color:C.red,items:["HRV bas Apple Watch → entraînement léger uniquement","Ne pas couper les calories davantage en période de fatigue","Priorité : +1h sommeil avant d'ajouter une séance"]},
+              ].map(({phase,color,items})=>(
+                <div key={phase} style={{background:color+"15",border:`1px solid ${color}30`,borderRadius:10,padding:"12px 14px",marginBottom:8}}>
+                  <div style={{color,fontWeight:700,fontSize:11,marginBottom:6}}>{phase}</div>
+                  <BulletBlock items={items} color={color}/>
+                </div>
+              ))}
+            </Collapse>
+          </div>
+        )}
+
+        {/* Coach banner */}
+        <div style={{background:`linear-gradient(135deg,${C.pinkD},${C.accD})`,border:`1px solid ${C.accB}`,borderRadius:13,padding:"13px 15px",marginTop:8}}>
+          <div style={{color:C.acc,fontWeight:700,fontSize:10,letterSpacing:1,marginBottom:5}}>⚡ RAPPEL DU COACH</div>
+          <p style={{fontSize:13,lineHeight:1.6,margin:0}}>{isMax?"🔥 PHASE MAX — 1 350 kcal · fenêtre 19h30 · 45min cardio. ":"✨ PHASE FINISH — maintiens le rythme. "}<strong style={{color:C.pink}}>{isMax?"Marche 45min avant de rentrer — pas après.":"Constance > perfection — 80% suffit."}</strong></p>
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+</script>
+</body>
+</html>
