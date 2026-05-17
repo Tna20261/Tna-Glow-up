@@ -1,0 +1,1865 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Glow Up"/>
+<meta name="theme-color" content="#07070F"/>
+<title>Glow Up 190→160</title>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+@keyframes pulse{0%{transform:scale(.8);opacity:0}50%{transform:scale(1.05)}100%{transform:scale(1);opacity:1}}
+</style>
+</head>
+<body style="margin:0;padding:0;background:#07070F">
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect } = React;
+
+
+
+const C = {
+  bg:"#07070F",s1:"#0D0D18",s2:"#12121E",s3:"#181826",bd:"#1E1E30",
+  acc:"#D4FF6B",accD:"#D4FF6B18",accB:"#D4FF6B40",
+  pink:"#FF6BA8",pinkD:"#FF6BA818",
+  blue:"#6BAAFF",blueD:"#6BAAFF18",
+  teal:"#6BFFD4",tealD:"#6BFFD418",
+  ora:"#FFB06B",oraD:"#FFB06B18",
+  red:"#FF6B6B",redD:"#FF6B6B18",
+  purple:"#B06BFF",
+  text:"#F0F0F8",muted:"#55557A",muted2:"#28283C",
+};
+
+const MONTHS=["jan","fév","mar","avr","mai","jun","jul","aoû","sep","oct","nov","déc"];
+const DNAMES=["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
+const DFULL=["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi","Dimanche"];
+const TOTAL_WEEKS=18;
+const WCOLS=["#D4FF6B","#FFB06B","#FF6BA8","#6BFFD4","#6BAAFF","#B06BFF","#FF6B6B","#D4FF6B","#FFB06B","#FF6BA8","#6BFFD4","#6BAAFF","#B06BFF","#FF6B6B","#D4FF6B","#FFB06B","#FF6BA8","#6BFFD4"];
+const THEMES=["🔥 MAX · Fondation","🔥 MAX · Déficit","🔥 MAX · Énergie","🔥 MAX · Intensité","🔥 MAX · Momentum","🔥 MAX · Accélération","🔥 MAX · Force","🔥 MAX · Endurance","🔥 MAX · Puissance","🔥 MAX · Sprint","✨ FINISH · Discipline","✨ FINISH · Sculpture","✨ FINISH · Définition","✨ FINISH · Éclat","✨ FINISH · Confiance","✨ FINISH · Maîtrise","✨ FINISH · Finale","✨ FINISH · Victoire"];
+
+const START=(()=>{const d=new Date();d.setHours(0,0,0,0);const day=d.getDay(),diff=day===0?1:(8-day);d.setDate(d.getDate()+diff);return d;})();
+const getDate=(w,d)=>{const r=new Date(START);r.setDate(r.getDate()+w*7+d);return r;};
+const fmt=(d)=>`${d.getDate()} ${MONTHS[d.getMonth()]}`;
+const today=new Date();today.setHours(0,0,0,0);
+const diffDays=Math.floor((today-START)/864e5);
+const todayW=Math.max(0,Math.min(TOTAL_WEEKS-1,Math.floor(diffDays/7)));
+const todayD=Math.max(0,Math.min(6,((diffDays%7)+7)%7));
+
+// ── STORAGE ───────────────────────────────────────────────────────────────────
+const LS = {
+  get:(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch{return d;}},
+  set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch{}}
+};
+
+// ── WEEKLY MEALS — 4 semaines · budget · whey chocolat · zéro gaspillage ────
+// Même ingrédients de base Costco · seuls 1-2 frais changent par semaine
+// Fruits surgelés privilégiés · tilapia + boeuf haché pour varier le saumon
+
+const ALL_WEEKLY_MEALS = [
+  // ── CYCLE A — Semaines 1, 5, 9, 13, 17 ──────────────────────────────────
+  [
+    { day:"Lundi", protein:"🍗 Poulet",
+      r1:{name:"Omelette Denver Power",desc:"3 oeufs + blancs · poivron · épinards · paprika fumé",prot:36},
+      r2:{name:"Bowl Poulet Sauce Citron-Ail",desc:"175g poulet batch · légumes rôtis · sauce citron-ail",prot:50},
+      r3:{name:"Shake Chocolat Classique",desc:"1 scoop whey chocolat · 300ml eau froide · glaçons",prot:25}},
+    { day:"Mardi", protein:"🐟 Saumon",
+      r1:{name:"Smoothie Bowl Chocolat-Banane",desc:"1 scoop whey chocolat · 200ml lait écrémé · ½ banane · amandes · cannelle",prot:36},
+      r2:{name:"Bowl Saumon Sauce Teriyaki",desc:"180g saumon batch · légumes rôtis · sauce teriyaki maison",prot:48},
+      r3:{name:"Cottage Bowl Fraises-Amandes",desc:"200g cottage cheese · fraises surgelées décongelées · 15 amandes · cannelle",prot:32}},
+    { day:"Mercredi", protein:"🥩 Boeuf",
+      r1:{name:"Omelette Méditerranéenne",desc:"3 oeufs + blancs · tomates cherry · feta · origan",prot:36},
+      r2:{name:"Bowl Boeuf Sauce Épicée",desc:"175g boeuf batch · légumes rôtis · sauce épicée mexicaine",prot:48},
+      r3:{name:"Shake Chocolat-Amandes",desc:"1 scoop whey chocolat · 250ml lait écrémé · 10 amandes hachées · cacao",prot:32}},
+    { day:"Jeudi", protein:"🐠 Tilapia",
+      r1:{name:"Omelette Salsa-Avocat",desc:"3 oeufs + blancs · ½ avocat · salsa sans sucre · coriandre",prot:36},
+      r2:{name:"Bowl Tilapia Sauce Méditerranéenne",desc:"200g tilapia batch · légumes rôtis · sauce méditerranéenne + olives",prot:50},
+      r3:{name:"Cottage Bowl Bleuets-Cannelle",desc:"200g cottage cheese · bleuets surgelés décongelés · amandes · cannelle",prot:32}},
+    { day:"Vendredi", protein:"🍗 Poulet",
+      r1:{name:"Pancakes Chocolat-Banane",desc:"2 oeufs · 1 scoop whey chocolat · ½ banane · ½ t. flocons avoine · cacao",prot:36},
+      r2:{name:"Salade Poulet-Feta Sauce Citron",desc:"175g poulet batch · chou rouge · concombre · feta · sauce citron-origan",prot:46},
+      r3:{name:"Shake Chocolat Post-Cardio",desc:"1 scoop whey chocolat · 300ml eau · glaçons · 1 c.t. cacao naturel",prot:25}},
+    { day:"Samedi", protein:"🥩 Boeuf",
+      r1:{name:"Omelette Denver Power",desc:"3 oeufs + blancs · poivron · épinards · paprika fumé",prot:36},
+      r2:{name:"Bowl Boeuf Salsa-Avocat",desc:"175g boeuf batch · légumes rôtis · salsa · ¼ avocat",prot:48},
+      r3:{name:"Shake Chocolat Récupération",desc:"1 scoop whey chocolat · 200ml lait écrémé · ½ banane · cacao",prot:32}},
+    { day:"Dimanche", protein:"🥚 Léger — Batch Cook",
+      r1:{name:"Yaourt Grec Power Bowl",desc:"200g yaourt grec 0% · bleuets surgelés décongelés · amandes · miel",prot:28},
+      r2:{name:"Assiette Batch Cook",desc:"Légumes crus + cottage cheese + oeufs durs pendant le prep",prot:36},
+      r3:{name:"Cottage Bowl Simple",desc:"200g cottage cheese · fraises surgelées · amandes · cannelle",prot:32}},
+  ],
+  // ── CYCLE B — Semaines 2, 6, 10, 14, 18 ─────────────────────────────────
+  [
+    { day:"Lundi", protein:"🍗 Poulet",
+      r1:{name:"Omelette Champignons-Origan",desc:"3 oeufs + blancs · champignons tranchés · origan · sel rose",prot:36},
+      r2:{name:"Bowl Poulet Sauce Moutarde-Herbes",desc:"175g poulet batch · légumes rôtis · sauce moutarde-herbes",prot:50},
+      r3:{name:"Shake Chocolat Classique",desc:"1 scoop whey chocolat · 300ml eau froide · glaçons",prot:25}},
+    { day:"Mardi", protein:"🐟 Saumon",
+      r1:{name:"Omelette Épinards-Tomates",desc:"3 oeufs + blancs · épinards · tomates cherry · origan",prot:36},
+      r2:{name:"Bowl Saumon Sauce Citron-Ail",desc:"180g saumon batch · légumes rôtis · sauce citron-ail",prot:48},
+      r3:{name:"Cottage Bowl Bleuets-Amandes",desc:"200g cottage cheese · bleuets surgelés · amandes · cannelle",prot:32}},
+    { day:"Mercredi", protein:"🥩 Boeuf",
+      r1:{name:"Pancakes Chocolat-Avoine",desc:"2 oeufs · 1 scoop whey chocolat · ½ banane · ½ t. flocons avoine",prot:36},
+      r2:{name:"Bowl Boeuf Sauce Méditerranéenne",desc:"175g boeuf batch · légumes rôtis · sauce méditerranéenne",prot:48},
+      r3:{name:"Shake Chocolat-Cannelle",desc:"1 scoop whey chocolat · 250ml lait écrémé · 1 c.t. cannelle · glaçons",prot:30}},
+    { day:"Jeudi", protein:"🐠 Tilapia",
+      r1:{name:"Pain Seigle Avocat-Oeufs Durs",desc:"1 tranche pain seigle · ½ avocat écrasé · 2 oeufs durs · sel rose · poivre",prot:30},
+      r2:{name:"Bowl Tilapia Sauce Teriyaki",desc:"200g tilapia batch · légumes rôtis · sauce teriyaki maison",prot:50},
+      r3:{name:"Cottage Bowl Fraises",desc:"200g cottage cheese · fraises surgelées décongelées · amandes · cannelle",prot:32}},
+    { day:"Vendredi", protein:"🍗 Poulet",
+      r1:{name:"Omelette Salsa-Avocat",desc:"3 oeufs + blancs · ½ avocat · salsa sans sucre · coriandre séchée",prot:36},
+      r2:{name:"Salade Poulet César Légère",desc:"175g poulet batch · laitue romaine · parmesan · jus citron + yogourt grec",prot:46},
+      r3:{name:"Shake Chocolat Post-Cardio",desc:"1 scoop whey chocolat · 300ml eau · glaçons",prot:25}},
+    { day:"Samedi", protein:"🐟 Saumon",
+      r1:{name:"Oeufs Durs Avocat Toast",desc:"2 oeufs durs tranchés · ½ avocat · 1 tranche pain seigle · tomates cherry",prot:28},
+      r2:{name:"Bowl Saumon Sauce Moutarde-Herbes",desc:"180g saumon batch · légumes rôtis · sauce moutarde-herbes",prot:48},
+      r3:{name:"Shake Chocolat Récupération",desc:"1 scoop whey chocolat · 200ml lait écrémé · ½ banane · cacao",prot:32}},
+    { day:"Dimanche", protein:"🥚 Léger — Batch Cook",
+      r1:{name:"Yaourt Grec Bleuets-Avoine",desc:"200g yaourt grec 0% · 2 c.s. flocons avoine · bleuets surgelés · miel",prot:28},
+      r2:{name:"Assiette Batch Cook",desc:"Oeufs durs + légumes crus + cottage cheese pendant le prep",prot:36},
+      r3:{name:"Cottage Bowl Simple",desc:"200g cottage cheese · bleuets surgelés · amandes · cannelle",prot:32}},
+  ],
+  // ── CYCLE C — Semaines 3, 7, 11, 15 ─────────────────────────────────────
+  [
+    { day:"Lundi", protein:"🍗 Poulet",
+      r1:{name:"Omelette Poivron-Cumin",desc:"3 oeufs + blancs · poivron rouge · oignon vert · cumin · paprika",prot:36},
+      r2:{name:"Bowl Poulet Sauce Épicée",desc:"175g poulet batch · légumes rôtis · sauce épicée mexicaine",prot:50},
+      r3:{name:"Shake Chocolat Classique",desc:"1 scoop whey chocolat · 300ml eau froide · glaçons",prot:25}},
+    { day:"Mardi", protein:"🐟 Saumon",
+      r1:{name:"Smoothie Bowl Chocolat-Fraises",desc:"1 scoop whey chocolat · 200ml lait écrémé · fraises surgelées · amandes",prot:36},
+      r2:{name:"Bowl Saumon Sauce Épicée",desc:"180g saumon batch · légumes rôtis · sauce épicée mexicaine",prot:48},
+      r3:{name:"Cottage Bowl Bleuets-Citron",desc:"200g cottage cheese · bleuets surgelés · zeste citron · amandes",prot:32}},
+    { day:"Mercredi", protein:"🥩 Boeuf",
+      r1:{name:"Omelette Denver Épicée",desc:"3 oeufs + blancs · poivron · oignon · chili doux · paprika fumé",prot:36},
+      r2:{name:"Bowl Boeuf Sauce Teriyaki",desc:"175g boeuf batch · légumes rôtis · sauce teriyaki",prot:48},
+      r3:{name:"Shake Chocolat-Cannelle",desc:"1 scoop whey chocolat · 250ml lait écrémé · cannelle · glaçons",prot:30}},
+    { day:"Jeudi", protein:"🐠 Tilapia",
+      r1:{name:"Pain Seigle Avocat-Oeufs Durs",desc:"1 tranche pain seigle · ½ avocat · 2 oeufs durs · sel rose · poivre",prot:30},
+      r2:{name:"Bowl Tilapia Sauce Citron-Ail",desc:"200g tilapia batch · légumes rôtis · sauce citron-ail",prot:50},
+      r3:{name:"Cottage Bowl Fraises-Amandes",desc:"200g cottage cheese · fraises surgelées · amandes · cannelle",prot:32}},
+    { day:"Vendredi", protein:"🍗 Poulet",
+      r1:{name:"Pancakes Chocolat-Banane",desc:"2 oeufs · 1 scoop whey chocolat · ½ banane · ½ t. flocons avoine · cacao",prot:36},
+      r2:{name:"Bowl Poulet Sauce Méditerranéenne",desc:"175g poulet batch · chou rouge · concombre · olives · sauce méditerranéenne",prot:46},
+      r3:{name:"Shake Chocolat Post-Cardio",desc:"1 scoop whey chocolat · 300ml eau · glaçons",prot:25}},
+    { day:"Samedi", protein:"🥩 Boeuf",
+      r1:{name:"Brunch Omelette Champignons",desc:"3 oeufs + blancs · champignons · épinards · sel rose · paprika",prot:36},
+      r2:{name:"Bowl Boeuf Sauce Citron-Ail",desc:"175g boeuf batch · légumes rôtis · sauce citron-ail",prot:48},
+      r3:{name:"Shake Chocolat Récupération",desc:"1 scoop whey chocolat · 200ml lait écrémé · ½ banane · cacao",prot:32}},
+    { day:"Dimanche", protein:"🥚 Léger — Batch Cook",
+      r1:{name:"Yaourt Grec Power Bowl",desc:"200g yaourt grec 0% · fraises surgelées décongelées · amandes · miel",prot:28},
+      r2:{name:"Assiette Batch Cook",desc:"Oeufs durs + légumes crus + cottage cheese pendant le prep",prot:36},
+      r3:{name:"Cottage Bowl Simple",desc:"200g cottage cheese · bleuets surgelés · amandes · cannelle",prot:32}},
+  ],
+  // ── CYCLE D — Semaines 4, 8, 12, 16 ─────────────────────────────────────
+  [
+    { day:"Lundi", protein:"🍗 Poulet",
+      r1:{name:"Omelette Tomates-Origan",desc:"3 oeufs + blancs · tomates cherry · origan · sel rose · poivre",prot:36},
+      r2:{name:"Bowl Poulet Sauce Teriyaki",desc:"175g poulet batch · légumes rôtis · sauce teriyaki maison",prot:50},
+      r3:{name:"Shake Chocolat Classique",desc:"1 scoop whey chocolat · 300ml eau froide · glaçons",prot:25}},
+    { day:"Mardi", protein:"🐟 Saumon",
+      r1:{name:"Smoothie Bowl Chocolat-Bleuets",desc:"1 scoop whey chocolat · 200ml lait écrémé · bleuets surgelés · amandes",prot:36},
+      r2:{name:"Bowl Saumon Sauce Méditerranéenne",desc:"180g saumon batch · légumes rôtis · sauce méditerranéenne + olives",prot:48},
+      r3:{name:"Cottage Bowl Fraises-Cannelle",desc:"200g cottage cheese · fraises surgelées · amandes · cannelle · miel",prot:32}},
+    { day:"Mercredi", protein:"🥩 Boeuf",
+      r1:{name:"Omelette Asiatique Légère",desc:"3 oeufs + blancs · chou râpé · carotte râpée · sauce soja légère",prot:36},
+      r2:{name:"Bowl Boeuf Sauce Moutarde-Herbes",desc:"175g boeuf batch · légumes rôtis · sauce moutarde-herbes",prot:48},
+      r3:{name:"Shake Chocolat-Amandes",desc:"1 scoop whey chocolat · 250ml lait écrémé · amandes hachées · cacao",prot:32}},
+    { day:"Jeudi", protein:"🐠 Tilapia",
+      r1:{name:"Oeufs Durs Avocat Toast",desc:"2 oeufs durs · ½ avocat écrasé · 1 tranche pain seigle · tomates cherry",prot:28},
+      r2:{name:"Bowl Tilapia Sauce Moutarde-Herbes",desc:"200g tilapia batch · légumes rôtis · sauce moutarde-herbes",prot:50},
+      r3:{name:"Cottage Bowl Bleuets-Amandes",desc:"200g cottage cheese · bleuets surgelés · amandes · cannelle",prot:32}},
+    { day:"Vendredi", protein:"🍗 Poulet",
+      r1:{name:"Pancakes Chocolat-Avoine",desc:"2 oeufs · 1 scoop whey chocolat · ½ banane · ½ t. flocons avoine",prot:36},
+      r2:{name:"Wrap Poulet Laitue-Avocat",desc:"175g poulet batch · feuilles laitue · tomates cherry · ½ avocat · citron",prot:46},
+      r3:{name:"Shake Chocolat Post-Cardio",desc:"1 scoop whey chocolat · 300ml eau · glaçons",prot:25}},
+    { day:"Samedi", protein:"🐠 Tilapia",
+      r1:{name:"Omelette Salsa-Avocat",desc:"3 oeufs + blancs · ½ avocat · salsa sans sucre · coriandre",prot:36},
+      r2:{name:"Bowl Tilapia Sauce Épicée",desc:"200g tilapia batch · légumes rôtis · sauce épicée mexicaine",prot:50},
+      r3:{name:"Shake Chocolat Récupération",desc:"1 scoop whey chocolat · 200ml lait écrémé · ½ banane · cacao",prot:32}},
+    { day:"Dimanche", protein:"🥚 Léger — Batch Cook",
+      r1:{name:"Yaourt Grec Bleuets-Miel",desc:"200g yaourt grec 0% · bleuets surgelés décongelés · amandes · miel · cannelle",prot:28},
+      r2:{name:"Assiette Batch Cook",desc:"Légumes crus + oeufs durs + cottage cheese pendant le prep",prot:36},
+      r3:{name:"Cottage Bowl Simple",desc:"200g cottage cheese · fraises ou bleuets surgelés · amandes · cannelle",prot:32}},
+  ],
+];
+
+function getWeeklyMeals(wi){ return ALL_WEEKLY_MEALS[wi % 4]; }
+const WEEKLY_MEALS = ALL_WEEKLY_MEALS[0];
+
+// ── GROCERY LIST — changes every 2 weeks ─────────────────────────────────────
+const GROCERY_BASE = [
+  // NOTE: Poulet, oeufs, whey, amandes, avoine, huile olive = achetés à Costco 1x/mois
+  // SAUCES — ingrédients frais à acheter chaque semaine
+  ["Gingembre frais","1 morceau","~2$","🫚"],
+  ["Citrons (sauces + repas)","1 filet 6×","~2,50$","🍋"],
+  // Condiments à racheter si épuisés
+  ["Sauce soja réduite sodium (si épuisée)","—","~3$","🍶"],
+  ["Miel naturel (si épuisé)","—","~5$","🍯"],
+  ["Moutarde Dijon (si épuisée)","—","~3$","🫙"],
+  ["Herbes de Provence (si épuisées)","—","~3$","🌿"],
+  ["Origan séché (si épuisé)","—","~2$","🌿"],
+  ["Épinards bébé","1 sac 312g","~3,50$","🥬"],
+  ["Brocoli","2 têtes","~3$","🥦"],
+  ["Courgettes","3 unités","~3$","🥒"],
+  ["Poivrons tricolores","1 sac 3×","~4$","🫑"],
+  ["Tomates cherry","1 pinte","~4$","🍅"],
+  ["Concombres","2 unités","~2,50$","🥒"],
+  ["Avocats","3 unités","~4$","🥑"],
+  ["Citrons","1 filet 6×","~2,50$","🍋"],
+  ["Bleuets surgelés","1 sac 600g","~5$","🫐"],
+  ["Fraises fraîches","1 casseau","~4$","🍓"],
+  ["Cottage cheese 2%","2 × 750g","~7$","🧀"],
+  ["Yaourt grec 0%","1 × 750g","~5$","🥛"],
+  ["Lait écrémé","2L","~4$","🥛"],
+  ["Amandes non salées (si épuisées)","—","stock Costco","🫘"],
+];
+
+const GROCERY_VARIANTS = [
+  // Sem 1-2 : Saumon + Boeuf + Tilapia
+  { label:"Sem. 1–2", extra:[
+    ["Filets saumon","500g (2 portions)","~11$","🐟"],
+    ["Boeuf haché maigre 90%","350g","~8$","🥩"],
+    ["Filets tilapia congelés","400g","~7$","🐠"],
+    ["Champignons tranchés","1 contenant","~3$","🍄"],
+    ["Chou rouge","½ petit","~1,50$","🥬"],
+    ["Feta émiettée","100g","~3$","🧀"],
+    ["Olives noires tranchées","1 petit pot","~3$","🫒"],
+  ], total:"~101–115$"},
+  // Sem 3-4 : Saumon + Boeuf + Crevettes
+  { label:"Sem. 3–4", extra:[
+    ["Filets saumon","500g","~11$","🐟"],
+    ["Boeuf haché maigre 90%","350g","~8$","🥩"],
+    ["Crevettes cuites congelées","400g","~9$","🦐"],
+    ["Haricots verts","1 sac congelé","~3$","🫘"],
+    ["Carottes","1 sac","~2$","🥕"],
+    ["Feta émiettée","100g","~3$","🧀"],
+    ["Sauce soja réduite sodium","1 petite bouteille","~3$","🍶"],
+  ], total:"~103–118$"},
+  // Sem 5-6 : Tilapia + Boeuf + Poulet extra
+  { label:"Sem. 5–6", extra:[
+    ["Filets tilapia congelés","600g","~10$","🐠"],
+    ["Boeuf haché maigre 90%","500g","~11$","🥩"],
+    ["Poitrines poulet EXTRA","400g supp.","~6$","🍗"],
+    ["Asperges","1 botte","~4$","🌿"],
+    ["Courgettes EXTRA","2 unités supp.","~2$","🥒"],
+    ["Citrons EXTRA","1 filet supp.","~2,50$","🍋"],
+    ["Parmesan râpé","100g","~4$","🧀"],
+  ], total:"~104–120$"},
+  // Sem 7-8 : Saumon + Crevettes + Boeuf
+  { label:"Sem. 7–8", extra:[
+    ["Filets saumon","500g","~11$","🐟"],
+    ["Crevettes cuites congelées","400g","~9$","🦐"],
+    ["Boeuf haché maigre 90%","350g","~8$","🥩"],
+    ["Épinards surgelés","1 sac","~3$","🥬"],
+    ["Brocoli EXTRA","1 tête supp.","~1,50$","🥦"],
+    ["Gingembre frais","1 morceau","~2$","🫚"],
+    ["Miel naturel","1 petit pot","~5$","🍯"],
+  ], total:"~102–116$"},
+];
+
+function getGrocery(wi){
+  const idx = Math.min(Math.floor(wi/2), GROCERY_VARIANTS.length-1);
+  const variant = GROCERY_VARIANTS[idx];
+  return {
+    label: variant.label,
+    items: [...GROCERY_BASE, ...variant.extra],
+    total: variant.total,
+  };
+}
+
+// ── TASK BUILDER ──────────────────────────────────────────────────────────────
+function buildTasks(wi,di){
+  const isMax=wi<10,isWork=di<4,isSun=di===6;
+  if(isSun) return [
+    {id:"s1",cat:"⚖️ Pesée & Bilan",t:"Pesée officielle semaine (après toilettes, avant manger)"},
+    {id:"s2",cat:"⚖️ Pesée & Bilan",t:"Mensurations : taille + hanches + bras + cuisse"},
+    {id:"s3",cat:"⚖️ Pesée & Bilan",t:`Photos progrès sem.${wi+1} — même lumière, même posture`},
+    {id:"s4",cat:"⚖️ Pesée & Bilan",t:"Apple Watch : pas moy. + sommeil + calories brûlées"},
+    {id:"s5",cat:"🍱 Meal Prep",t:"🍗 Cuire 1,2kg poulet au four 25min 200°C"},
+    {id:"s6",cat:"🍱 Meal Prep",t:"🐟 Cuire saumon à la poêle 4min/côté (2 portions)"},
+    {id:"s7",cat:"🍱 Meal Prep",t:"🥩 Cuire boeuf haché + épices à la poêle"},
+    {id:"s8",cat:"🍱 Meal Prep",t:"🥦 Rôtir plaque légumes (brocoli + courgette + poivron) 220°C 20min"},
+    {id:"s9",cat:"🍱 Meal Prep",t:"🥚 Bouillir 10 oeufs durs"},
+    {id:"s10",cat:"🍱 Meal Prep",t:"📦 Assembler 5 Tupperware L–Ma–Me–Je–Ve étiquetés"},
+    {id:"s11",cat:"🍱 Meal Prep",t:"🥦 Laver et couper légumes crus pour snacks semaine"},
+    {id:"s12",cat:"🏃 Cardio",t:"Marche récupération 30min zone 2 légère"},
+    {id:"s13",cat:"📅 Organisation",t:"Vérifier liste épicerie + noter manquants"},
+    {id:"s14",cat:"📅 Organisation",t:"Planifier entraînements semaine dans le calendrier"},
+    {id:"s15",cat:"📅 Organisation",t:"Préparer 4 tenues sport sorties et visibles"},
+    {id:"s16",cat:"💆 Self Care",t:"Bain ou douche longue + soin peau"},
+    {id:"s17",cat:"💆 Self Care",t:"Journaling 5min : bilan semaine + intentions"},
+    {id:"w1",cat:"💧 Eau",t:"500ml eau au réveil"},
+    {id:"w2",cat:"💧 Eau",t:"3,0–3,5L total dans la journée"},
+    {id:"p1",cat:"💊 Suppléments",t:"Créatine 5g"},
+    {id:"p2",cat:"💊 Suppléments",t:"D3 2000 UI + K2 avec repas"},
+    {id:"p3",cat:"💊 Suppléments",t:"Oméga-3 2g avec repas"},
+    {id:"p4",cat:"💊 Suppléments",t:"Magnésium bisglycinate 300mg avant dodo"},
+    {id:"sl1",cat:"🌙 Sommeil",t:"Coucher 22h00 max — 7h minimum"},
+    {id:"sl2",cat:"🌙 Sommeil",t:"Lumière chaude + no écrans bleus dès 21h30"},
+  ];
+  const weekMeals = getWeeklyMeals(wi);
+  const meal = weekMeals[di];
+  const morning=isWork?[
+    {id:"am1",cat:"🌅 Matin",t:"Réveil 06h30 — NE PAS toucher le téléphone (1min règle)"},
+    {id:"am2",cat:"🌅 Matin",t:"500ml eau immédiatement (verre sur table de nuit)"},
+    {id:"am3",cat:"🌅 Matin",t:"Ouvrir stores — lumière vive"},
+    {id:"am4",cat:"🌅 Matin",t:"5min étirements doux + café/thé SANS sucre"},
+    {id:"am0",cat:"🌅 Matin",t:"🥃 Shot santé du matin (à jeun — avant café et eau)"},
+    {id:"am6",cat:"🌅 Matin",t:"💊 Créatine 5g + D3 2000UI + K2 (avec café)"},
+    {id:"am5",cat:"🌅 Matin",t:"Check objectifs Apple Watch du jour"},
+  ]:[
+    {id:"am1",cat:"🌅 Matin",t:"Réveil naturel + 500ml eau"},
+    {id:"am2",cat:"🌅 Matin",t:"Pesée du matin (avant manger)"},
+    {id:"am0",cat:"🌅 Matin",t:"🥃 Shot santé du matin (à jeun — avant café)"},
+    {id:"am3",cat:"🌅 Matin",t:"Café ou thé noir SANS sucre"},
+  ];
+  const meals=isMax?[
+    {id:"m1",cat:"🍽️ Repas",t:`REPAS 1 (12h00) — ${meal.r1.name} · ${meal.r1.desc}`},
+    {id:"m2",cat:"🍽️ Repas",t:`REPAS 2 (15h30) — ${meal.r2.name} · ${meal.r2.desc} [SANS féculent]`},
+    {id:"m3",cat:"🍽️ Repas",t:`REPAS 3 (18h30) — ${meal.r3.name} · ${meal.r3.desc}`},
+    {id:"m4",cat:"🍽️ Repas",t:"Fenêtre FERMÉE 19h30 — brosser les dents"},
+  ]:[
+    {id:"m1",cat:"🍽️ Repas",t:`REPAS 1 (12h00) — ${meal.r1.name} · ${meal.r1.desc}`},
+    {id:"m2",cat:"🍽️ Repas",t:`REPAS 2 (15h30) — ${meal.r2.name} · ${meal.r2.desc}`},
+    {id:"m3",cat:"🍽️ Repas",t:`REPAS 3 (18h30–19h30) — ${meal.r3.name} · ${meal.r3.desc}`},
+    {id:"m4",cat:"🍽️ Repas",t:"Fenêtre FERMÉE 20h00 — brosser les dents"},
+  ];
+  const train=(di===0||di===4)?[
+    {id:"t1",cat:"💪 Entraînement",t:"LOWER BODY 35min — Goblet squat · RDL · Fentes · Hip thrust · Planche"},
+  ]:(di===2||di===5)?[
+    {id:"t1",cat:"💪 Entraînement",t:"UPPER BODY 35min — Arnold press · Rowing · Fly latéral · Curl · Triceps"},
+  ]:[];
+  const cardio=isWork?[
+    {id:"c1",cat:"🏃 Cardio",t:isMax?`Marche rapide 45min AVANT de rentrer + HIIT 10min si sem≥3`:`Marche rapide 30min AVANT de rentrer`},
+    {id:"c2",cat:"🏃 Cardio",t:"Objectif 10 000 pas — vérifier Apple Watch"},
+  ]:[{id:"c1",cat:"🏃 Cardio",t:"Cardio 30–45min · 10 000 pas cible"}];
+  const water=[
+    {id:"w1",cat:"💧 Eau",t:"500ml eau au réveil"},
+    {id:"w2",cat:"💧 Eau",t:"500ml eau à 10h / 12h"},
+    {id:"w3",cat:"💧 Eau",t:"500ml eau à 14h / 15h"},
+    {id:"w4",cat:"💧 Eau",t:"500ml eau à 17h / 18h"},
+    {id:"w5",cat:"💧 Eau",t:"Total 3,0–3,5L atteint ✓"},
+  ];
+  const supps=[
+    {id:"p1",cat:"💊 Suppléments",t:"Créatine 5g"},
+    {id:"p2",cat:"💊 Suppléments",t:"D3 2000 UI + K2 avec repas gras"},
+    {id:"p3",cat:"💊 Suppléments",t:"Oméga-3 2g avec repas"},
+    {id:"p4",cat:"💊 Suppléments",t:"Magnésium bisglycinate 300mg avant dodo"},
+  ];
+  const sleep=[
+    {id:"sl1",cat:"🌙 Sommeil",t:"Coucher 22h00 max — 7h minimum"},
+    {id:"sl2",cat:"🌙 Sommeil",t:"Lumière chaude + no écrans bleus dès 21h30"},
+    {id:"sl3",cat:"🌙 Sommeil",t:"Préparer vêtements + Tupperware du lendemain"},
+  ];
+  const jeune = [
+    {id:"j1",cat:"⏳ Jeûne",t:"07h00–12h00 — JEÛNE · Eau + café + thé autorisés · Zéro nourriture"},
+    {id:"j2",cat:"⏳ Jeûne",t:"500ml eau supplémentaire avant 10h"},
+  ];
+  // Reorder supplements to be with meals
+  const suppsDay = [
+    {id:"p1",cat:"💊 Suppléments",t:"Oméga-3 2g avec repas 1 (12h00)"},
+    {id:"p4",cat:"💊 Suppléments",t:"Magnésium bisglycinate 300mg — 30min avant de dormir (21h30)"},
+  ];
+  return isWork
+    ? [...morning,...jeune,...meals,...train,...cardio,...suppsDay,...water,...sleep]
+    : [...morning,...meals,...train,...cardio,...suppsDay,...water,...sleep];
+}
+
+// ── PROGRESS HELPERS ──────────────────────────────────────────────────────────
+function weekProg(wi,checks){
+  let t=0,d=0;
+  for(let di=0;di<7;di++){buildTasks(wi,di).forEach(tk=>{t++;if(checks[`${wi}-${di}-${tk.id}`])d++;});}
+  return {t,d,pct:t>0?Math.round(d/t*100):0};
+}
+function dayProg(wi,di,checks){
+  const tasks=buildTasks(wi,di);
+  const d=tasks.filter(t=>checks[`${wi}-${di}-${t.id}`]).length;
+  return {t:tasks.length,d,pct:tasks.length>0?Math.round(d/tasks.length*100):0};
+}
+function globalPct(checks){
+  let t=0,d=0;
+  for(let w=0;w<TOTAL_WEEKS;w++){const p=weekProg(w,checks);t+=p.t;d+=p.d;}
+  return t>0?Math.round(d/t*100):0;
+}
+
+const catColors={"🌅 Matin":C.ora,"🍽️ Repas":C.acc,"💪 Entraînement":C.pink,"🏃 Cardio":C.red,"💧 Eau":C.blue,"💊 Suppléments":C.teal,"🌙 Sommeil":C.purple,"⚖️ Pesée & Bilan":C.acc,"🍱 Meal Prep":C.ora,"📅 Organisation":C.blue,"💆 Self Care":C.pink};
+
+// ── COMPONENTS ────────────────────────────────────────────────────────────────
+const Pill=({children,color=C.acc})=>(
+  <span style={{display:"inline-block",padding:"2px 10px",borderRadius:99,fontSize:11,fontWeight:700,background:color+"20",color,border:`1px solid ${color}40`,marginRight:6,marginBottom:4}}>{children}</span>
+);
+
+const Kpi=({icon,label,value,sub,color=C.acc})=>(
+  <div style={{background:C.s2,border:`1px solid ${C.bd}`,borderRadius:12,padding:"12px 14px"}}>
+    <div style={{color:C.muted,fontSize:9,letterSpacing:1.5,textTransform:"uppercase",marginBottom:3}}>{icon} {label}</div>
+    <div style={{color,fontSize:22,fontWeight:900,lineHeight:1}}>{value}</div>
+    {sub&&<div style={{color:C.muted,fontSize:10,marginTop:3}}>{sub}</div>}
+  </div>
+);
+
+function Collapse({title,color=C.acc,children,defaultOpen=false}){
+  const [open,setOpen]=useState(defaultOpen);
+  return(
+    <div style={{border:`1px solid ${C.bd}`,borderRadius:12,overflow:"hidden",marginBottom:10,background:C.s2}}>
+      <button onClick={()=>setOpen(!open)} style={{width:"100%",display:"flex",justifyContent:"space-between",alignItems:"center",padding:"13px 16px",background:"none",border:"none",cursor:"pointer"}}>
+        <span style={{color:C.text,fontWeight:700,fontSize:13}}>{title}</span>
+        <span style={{color,fontSize:14,transform:open?"none":"rotate(-90deg)",transition:"transform .2s"}}>▾</span>
+      </button>
+      {open&&<div style={{padding:"0 16px 14px"}}>{children}</div>}
+    </div>
+  );
+}
+
+const BulletList=({items,color=C.acc})=>(
+  <div>{items.map((t,i)=>(
+    <div key={i} style={{display:"flex",gap:8,marginBottom:7,alignItems:"flex-start"}}>
+      <span style={{color,fontSize:10,marginTop:3,flexShrink:0}}>◆</span>
+      <span style={{color:C.text,fontSize:13,lineHeight:1.5}}>{t}</span>
+    </div>
+  ))}</div>
+);
+
+function TaskItem({task,checked,onToggle,color}){
+  return(
+    <button onClick={onToggle} style={{width:"100%",display:"flex",alignItems:"center",gap:11,borderRadius:9,border:`1px solid ${checked?color+"50":C.bd}`,padding:"10px 13px",marginBottom:5,cursor:"pointer",textAlign:"left",background:checked?color+"15":C.s2,transition:"all .15s"}}>
+      <div style={{width:21,height:21,borderRadius:6,border:`2px solid ${checked?color:C.muted2}`,background:checked?color:"transparent",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",transition:"all .15s"}}>
+        {checked&&<span style={{color:"#000",fontSize:12,fontWeight:900}}>✓</span>}
+      </div>
+      <span style={{fontSize:12,lineHeight:1.4,flex:1,color:checked?C.muted:C.text,textDecoration:checked?"line-through":"none"}}>{task.t}</span>
+    </button>
+  );
+}
+
+// ── TABS ──────────────────────────────────────────────────────────────────────
+const TABS=[
+  {id:"dash",icon:"🏠",lbl:"HOME"},
+  {id:"plan",icon:"📅",lbl:"PLAN"},
+  {id:"repas",icon:"🍽️",lbl:"REPAS"},
+  {id:"epicerie",icon:"🛒",lbl:"ÉPICERIE"},
+  {id:"fitness",icon:"💪",lbl:"FITNESS"},
+  {id:"progres",icon:"📸",lbl:"PROGRÈS"},
+  {id:"supps",icon:"💊",lbl:"SUPPLÉMENTS"},
+  {id:"coaching",icon:"🧠",lbl:"COACHING"},
+  {id:"stats",icon:"📈",lbl:"STATS"},
+  {id:"cycle",icon:"🔴",lbl:"CYCLE"},
+  {id:"timer",icon:"⏱️",lbl:"TIMER"},
+  {id:"rapport",icon:"📋",lbl:"RAPPORT"},
+  {id:"notes",icon:"📝",lbl:"NOTES"},
+];
+
+// ── PROGRESS TAB ──────────────────────────────────────────────────────────────
+function ProgressTab(){
+  const [section,setSection]=useState("weight");
+  const [data,setData]=useState(()=>LS.get("gu_prog",{weights:[],measures:[],watch:[],photos:[]}));
+  const [newW,setNewW]=useState("");
+  const [newM,setNewM]=useState({waist:"",hips:"",arm:"",thigh:""});
+  const [newWt,setNewWt]=useState({steps:"",calories:"",sleep:"",hr:""});
+  const [saved,setSaved]=useState(false);
+
+  const save=(updated)=>{setData(updated);LS.set("gu_prog",updated);setSaved(true);setTimeout(()=>setSaved(false),2000);};
+
+  const inp={background:C.s3,border:`1px solid ${C.bd}`,borderRadius:8,padding:"10px 12px",color:C.text,fontSize:14,width:"100%",marginBottom:8,outline:"none",WebkitAppearance:"none"};
+  const lbl={color:C.muted,fontSize:10,fontWeight:700,letterSpacing:1,textTransform:"uppercase",marginBottom:4,display:"block"};
+  const savBtn=(color)=>({background:color,color:"#000",border:"none",borderRadius:9,padding:"11px 0",fontWeight:700,fontSize:14,width:"100%",cursor:"pointer",marginTop:4});
+
+  const PHOTO_MILESTONES=[
+    {sem:1,label:"📸 Photo AVANT — Départ (à prendre maintenant)"},
+    {sem:4,label:"📸 Photo Semaine 4"},
+    {sem:8,label:"📸 Photo Semaine 8"},
+    {sem:10,label:"📸 Photo Semaine 10 — FIN PHASE MAX 🏁"},
+    {sem:14,label:"📸 Photo Semaine 14"},
+    {sem:18,label:"📸 Photo Semaine 18 — OBJECTIF ATTEINT 🏆"},
+  ];
+
+  return(
+    <div>
+      {saved&&<div style={{background:C.accD,border:`1px solid ${C.accB}`,borderRadius:9,padding:"10px 14px",marginBottom:12,color:C.acc,fontWeight:700,fontSize:13,textAlign:"center"}}>✓ Enregistré !</div>}
+      {milestone&&(
+        <div style={{background:milestone.color+"25",border:`2px solid ${milestone.color}`,borderRadius:13,padding:"16px",marginBottom:12,textAlign:"center",animation:"pulse 0.5s ease"}}>
+          <div style={{fontSize:32,marginBottom:6}}>🎊</div>
+          <div style={{color:milestone.color,fontWeight:900,fontSize:18,lineHeight:1.3}}>{milestone.msg}</div>
+          <div style={{color:C.text,fontSize:13,marginTop:6}}>Continue comme ça — tu es INARRÊTABLE ! 💪</div>
+        </div>
+      )}
+
+      {/* Section nav */}
+      <div style={{display:"flex",gap:6,marginBottom:14,overflowX:"auto",scrollbarWidth:"none"}}>
+        {[["weight","⚖️ Poids"],["measures","📏 Mesures"],["watch","⌚ Watch"],["photos","📸 Photos"]].map(([id,lbl2])=>(
+          <button key={id} onClick={()=>setSection(id)} style={{padding:"7px 12px",borderRadius:8,border:"none",cursor:"pointer",whiteSpace:"nowrap",fontSize:12,fontWeight:700,background:section===id?C.acc:C.s2,color:section===id?"#000":C.muted,flexShrink:0}}>{lbl2}</button>
+        ))}
+      </div>
+
+      {/* WEIGHT */}
+      {section==="weight"&&(
+        <div>
+          <div style={{background:C.s2,border:`1px solid ${C.bd}`,borderRadius:12,padding:"14px 16px",marginBottom:12}}>
+            <div style={{color:C.acc,fontWeight:700,fontSize:13,marginBottom:12}}>⚖️ MON POIDS AUJOURD'HUI</div>
+            <label style={lbl}>Poids (lbs)</label>
+            <input type="number" step="0.1" placeholder="ex: 187.5" value={newW} onChange={e=>setNewW(e.target.value)} style={inp}/>
+            <button onClick={()=>{if(!newW)return;const u={...data,weights:[...data.weights,{date:new Date().toLocaleDateString("fr-CA"),value:parseFloat(newW)}]};save(u);setNewW("");}} style={savBtn(C.acc)}>Enregistrer</button>
+          </div>
+          {data.weights.length>0&&(
+            <div style={{background:C.s2,border:`1px solid ${C.bd}`,borderRadius:12,padding:"14px 16px"}}>
+              <div style={{color:C.muted,fontSize:10,fontWeight:700,letterSpacing:2,textTransform:"uppercase",marginBottom:10}}>HISTORIQUE</div>
+              {[...data.weights].reverse().slice(0,10).map((w,i)=>(
+                <div key={i} style={{display:"flex",justifyContent:"space-between",padding:"7px 0",borderBottom:`1px solid ${C.bd}`}}>
+                  <span style={{color:C.muted,fontSize:12}}>{w.date}</span>
+                  <span style={{color:C.acc,fontWeight:900,fontSize:16,fontFamily:"monospace"}}>{w.value} lbs</span>
+                </div>
+              ))}
+              {data.weights.length>=2&&(
+                <div style={{marginTop:10,padding:"10px 12px",background:C.accD,borderRadius:8,border:`1px solid ${C.accB}`}}>
+                  <span style={{color:C.acc,fontWeight:700,fontSize:13}}>
+                    {(data.weights[data.weights.length-1].value-data.weights[0].value).toFixed(1)} lbs depuis le début
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+
+      {/* WEIGHT CHART */}
+      {data.weights.length >= 2 && (
+        <div style={{background:C.s2,border:`1px solid ${C.bd}`,borderRadius:12,padding:"14px 16px",marginBottom:12}}>
+          <div style={{color:C.acc,fontWeight:700,fontSize:12,marginBottom:12}}>📊 GRAPHIQUE DE POIDS</div>
+          {(()=>{
+            const weights = data.weights.slice(-14); // Last 14 entries
+            const vals = weights.map(w=>w.value);
+            const minW = Math.min(...vals) - 1;
+            const maxW = Math.max(...vals) + 1;
+            const range = maxW - minW;
+            const w = 280, h = 120;
+            const pts = vals.map((v,i)=>({
+              x: i*(w/(vals.length-1||1)),
+              y: h - ((v-minW)/range)*h
+            }));
+            const pathD = pts.map((p,i)=>i===0?`M${p.x},${p.y}`:`L${p.x},${p.y}`).join(" ");
+            const areaD = `${pathD} L${pts[pts.length-1].x},${h} L0,${h} Z`;
+            return (
+              <div style={{overflowX:"auto"}}>
+                <svg width={w+40} height={h+30} style={{display:"block",margin:"0 auto"}}>
+                  {/* Grid lines */}
+                  {[0,0.25,0.5,0.75,1].map((t,i)=>(
+                    <g key={i}>
+                      <line x1="30" y1={t*h} x2={w+30} y2={t*h} stroke="#1E1E30" strokeWidth="1"/>
+                      <text x="28" y={t*h+4} fill="#55557A" fontSize="9" textAnchor="end">{(maxW-t*range).toFixed(1)}</text>
+                    </g>
+                  ))}
+                  {/* Area */}
+                  <path d={`M30,${pts[0]?.y||0} ` + pts.slice(1).map(p=>`L${p.x+30},${p.y}`).join(" ") + ` L${(pts[pts.length-1]?.x||0)+30},${h} L30,${h} Z`} fill="rgba(212,255,107,.1)"/>
+                  {/* Line */}
+                  <path d={`M30,${pts[0]?.y||0} ` + pts.slice(1).map(p=>`L${p.x+30},${p.y}`).join(" ")} fill="none" stroke="#D4FF6B" strokeWidth="2" strokeLinecap="round"/>
+                  {/* Points */}
+                  {pts.map((p,i)=>(
+                    <circle key={i} cx={p.x+30} cy={p.y} r="3" fill="#D4FF6B"/>
+                  ))}
+                  {/* X labels */}
+                  {weights.map((w2,i)=>(
+                    i % Math.max(1,Math.floor(weights.length/5)) === 0 &&
+                    <text key={i} x={pts[i].x+30} y={h+20} fill="#55557A" fontSize="8" textAnchor="middle">{w2.date.slice(5)}</text>
+                  ))}
+                </svg>
+                <div style={{display:"flex",justifyContent:"space-between",marginTop:8}}>
+                  <div style={{background:C.redD,borderRadius:8,padding:"6px 10px"}}>
+                    <div style={{color:C.muted,fontSize:9}}>DÉPART</div>
+                    <div style={{color:C.red,fontWeight:900,fontSize:14}}>{data.weights[0].value} lbs</div>
+                  </div>
+                  <div style={{background:C.accD,borderRadius:8,padding:"6px 10px",textAlign:"center"}}>
+                    <div style={{color:C.muted,fontSize:9}}>PERDU</div>
+                    <div style={{color:C.acc,fontWeight:900,fontSize:14}}>{(data.weights[0].value - data.weights[data.weights.length-1].value).toFixed(1)} lbs</div>
+                  </div>
+                  <div style={{background:C.tealD,borderRadius:8,padding:"6px 10px",textAlign:"right"}}>
+                    <div style={{color:C.muted,fontSize:9}}>ACTUEL</div>
+                    <div style={{color:C.teal,fontWeight:900,fontSize:14}}>{data.weights[data.weights.length-1].value} lbs</div>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+      )}
+
+      {/* MEASURES */}
+      {section==="measures"&&(
+        <div>
+          <div style={{background:C.s2,border:`1px solid ${C.bd}`,borderRadius:12,padding:"14px 16px",marginBottom:12}}>
+            <div style={{color:C.teal,fontWeight:700,fontSize:13,marginBottom:12}}>📏 MES MESURES</div>
+            {[["waist","Tour de taille (po ou cm)","ex: 32"],["hips","Tour de hanches","ex: 42"],["arm","Tour de bras","ex: 13"],["thigh","Tour de cuisse","ex: 24"]].map(([k,l,p])=>(
+              <div key={k}>
+                <label style={{...lbl,color:C.teal}}>{l}</label>
+                <input type="number" step="0.5" placeholder={p} value={newM[k]} onChange={e=>setNewM({...newM,[k]:e.target.value})} style={inp}/>
+              </div>
+            ))}
+            <button onClick={()=>{const u={...data,measures:[...data.measures,{date:new Date().toLocaleDateString("fr-CA"),...newM}]};save(u);setNewM({waist:"",hips:"",arm:"",thigh:""}); }} style={savBtn(C.teal)}>Enregistrer</button>
+          </div>
+          {data.measures.length>0&&(
+            <div style={{background:C.s2,border:`1px solid ${C.bd}`,borderRadius:12,padding:"14px 16px"}}>
+              <div style={{color:C.muted,fontSize:10,fontWeight:700,letterSpacing:2,textTransform:"uppercase",marginBottom:10}}>HISTORIQUE</div>
+              {[...data.measures].reverse().slice(0,5).map((m,i)=>(
+                <div key={i} style={{padding:"8px 0",borderBottom:`1px solid ${C.bd}`}}>
+                  <div style={{color:C.teal,fontSize:11,fontWeight:700,marginBottom:4}}>{m.date}</div>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:4}}>
+                    {m.waist&&<span style={{color:C.text,fontSize:12}}>Taille: {m.waist}</span>}
+                    {m.hips&&<span style={{color:C.text,fontSize:12}}>Hanches: {m.hips}</span>}
+                    {m.arm&&<span style={{color:C.text,fontSize:12}}>Bras: {m.arm}</span>}
+                    {m.thigh&&<span style={{color:C.text,fontSize:12}}>Cuisse: {m.thigh}</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* APPLE WATCH */}
+      {section==="watch"&&(
+        <div>
+          <div style={{background:C.s2,border:`1px solid ${C.bd}`,borderRadius:12,padding:"14px 16px",marginBottom:12}}>
+            <div style={{color:C.blue,fontWeight:700,fontSize:13,marginBottom:12}}>⌚ DONNÉES APPLE WATCH — AUJOURD'HUI</div>
+            {[["steps","Nombre de pas","ex: 9 842"],["calories","Calories actives brûlées","ex: 420"],["sleep","Heures de sommeil (nuit passée)","ex: 7.2"],["hr","FC repos (bpm)","ex: 65"]].map(([k,l,p])=>(
+              <div key={k}>
+                <label style={{...lbl,color:C.blue}}>{l}</label>
+                <input type="number" step="0.1" placeholder={p} value={newWt[k]} onChange={e=>setNewWt({...newWt,[k]:e.target.value})} style={inp}/>
+              </div>
+            ))}
+            <button onClick={()=>{const u={...data,watch:[...data.watch,{date:new Date().toLocaleDateString("fr-CA"),...newWt}]};save(u);setNewWt({steps:"",calories:"",sleep:"",hr:""});}} style={savBtn(C.blue)}>Enregistrer</button>
+          </div>
+          {data.watch.length>0&&(
+            <div style={{background:C.s2,border:`1px solid ${C.bd}`,borderRadius:12,padding:"14px 16px"}}>
+              <div style={{color:C.muted,fontSize:10,fontWeight:700,letterSpacing:2,textTransform:"uppercase",marginBottom:10}}>HISTORIQUE</div>
+              {[...data.watch].reverse().slice(0,7).map((w,i)=>(
+                <div key={i} style={{padding:"8px 0",borderBottom:`1px solid ${C.bd}`}}>
+                  <div style={{color:C.blue,fontSize:11,fontWeight:700,marginBottom:4}}>{w.date}</div>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:4}}>
+                    {w.steps&&<span style={{color:C.text,fontSize:12}}>👟 {parseInt(w.steps).toLocaleString("fr")} pas</span>}
+                    {w.calories&&<span style={{color:C.text,fontSize:12}}>🔥 {w.calories} kcal</span>}
+                    {w.sleep&&<span style={{color:C.text,fontSize:12}}>🌙 {w.sleep}h</span>}
+                    {w.hr&&<span style={{color:C.text,fontSize:12}}>❤️ {w.hr} bpm</span>}
+                  </div>
+                  {w.steps&&(
+                    <div style={{marginTop:5,background:parseInt(w.steps)>=10000?C.accD:C.oraD,borderRadius:6,padding:"4px 8px",display:"inline-block"}}>
+                      <span style={{color:parseInt(w.steps)>=10000?C.acc:C.ora,fontSize:11,fontWeight:700}}>
+                        {parseInt(w.steps)>=10000?"✓ Objectif atteint !":"Manque "+(10000-parseInt(w.steps)).toLocaleString("fr")+" pas"}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* PHOTOS */}
+      {section==="photos"&&(
+        <div>
+          <div style={{background:C.accD,border:`1px solid ${C.accB}`,borderRadius:12,padding:"14px 16px",marginBottom:14}}>
+            <div style={{color:C.acc,fontWeight:700,fontSize:12,marginBottom:6}}>📸 GUIDE PHOTOS DE PROGRESSION</div>
+            <div style={{color:C.text,fontSize:13,lineHeight:1.6}}>Même endroit · même lumière naturelle · même heure (matin) · même sous-vêtements · 3 angles : face, profil droit, dos</div>
+          </div>
+          {PHOTO_MILESTONES.map((m,i)=>{
+            const isDone=data.photos.includes(m.sem);
+            const isReachable=todayW+1>=m.sem;
+            return(
+              <button key={i} onClick={()=>{const p=isDone?data.photos.filter(s=>s!==m.sem):[...data.photos,m.sem];const u={...data,photos:p};save(u);}} style={{width:"100%",display:"flex",alignItems:"center",gap:12,background:isDone?C.accD:isReachable?C.oraD:C.s2,border:`1px solid ${isDone?C.accB:isReachable?C.ora+"40":C.bd}`,borderRadius:10,padding:"12px 14px",marginBottom:7,cursor:"pointer",textAlign:"left"}}>
+                <div style={{width:22,height:22,borderRadius:6,border:`2px solid ${isDone?C.acc:C.muted2}`,background:isDone?C.acc:"transparent",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",color:"#000",fontSize:13,fontWeight:900}}>{isDone?"✓":""}</div>
+                <div>
+                  <div style={{color:isDone?C.acc:isReachable?C.ora:C.muted,fontWeight:700,fontSize:13}}>{m.label}</div>
+                  <div style={{color:C.muted,fontSize:11,marginTop:2}}>{isDone?"✓ Photo prise":isReachable?"À prendre maintenant":"Pas encore atteint"}</div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── GROCERY TAB ───────────────────────────────────────────────────────────────
+function EpicerieTab(){
+  const [selWeek, setSelWeek] = useState(todayW);
+  const grocery = getGrocery(selWeek);
+  const [checked,setChecked]=useState(()=>LS.get("gu_groc_"+selWeek,[]));
+  
+  useEffect(()=>{
+    setChecked(LS.get("gu_groc_"+selWeek,[]));
+  },[selWeek]);
+
+  const toggle=(name)=>{
+    const u=checked.includes(name)?checked.filter(n=>n!==name):[...checked,name];
+    setChecked(u);
+    LS.set("gu_groc_"+selWeek,u);
+  };
+  const done=checked.length;
+  const total=grocery.items.length;
+
+  return(
+    <div>
+      {/* Week selector */}
+      <div style={{display:"flex",gap:5,overflowX:"auto",scrollbarWidth:"none",marginBottom:14}}>
+        {Array.from({length:TOTAL_WEEKS},(_,w)=>(
+          <button key={w} onClick={()=>setSelWeek(w)} style={{padding:"6px 11px",borderRadius:7,border:"none",cursor:"pointer",whiteSpace:"nowrap",fontSize:11,fontWeight:700,flexShrink:0,background:selWeek===w?C.acc:C.s2,color:selWeek===w?"#000":C.muted}}>
+            S.{w+1}
+          </button>
+        ))}
+      </div>
+
+      <div style={{background:C.accD,border:`1px solid ${C.accB}`,borderRadius:12,padding:"13px 16px",marginBottom:14}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div>
+            <div style={{color:C.acc,fontWeight:700,fontSize:13,marginBottom:3}}>🛒 ÉPICERIE — SEMAINE {selWeek+1}</div>
+            <div style={{color:C.text,fontSize:12}}>Budget estimé : <strong style={{color:C.acc}}>{grocery.total}</strong></div>
+            <div style={{color:C.muted,fontSize:11,marginTop:2}}>{grocery.label} · Maxi + Super C</div>
+          </div>
+          <div style={{textAlign:"right"}}>
+            <div style={{color:C.acc,fontWeight:900,fontSize:20,fontFamily:"monospace"}}>{done}/{total}</div>
+            <div style={{color:C.muted,fontSize:10}}>cochés</div>
+          </div>
+        </div>
+        <div style={{marginTop:10,background:C.s3,borderRadius:99,height:4,overflow:"hidden"}}>
+          <div style={{width:`${total>0?(done/total)*100:0}%`,height:"100%",background:C.acc,borderRadius:99,transition:"width .3s"}}/>
+        </div>
+      </div>
+
+      <div style={{color:C.muted,fontSize:10,fontWeight:700,letterSpacing:2,textTransform:"uppercase",marginBottom:8}}>MAXI / SUPER C</div>
+      {grocery.items.map(([name,qty,price,icon],i)=>{
+        const isDone=checked.includes(name);
+        return(
+          <button key={i} onClick={()=>toggle(name)} style={{width:"100%",display:"flex",alignItems:"center",gap:10,background:isDone?C.accD:C.s2,border:`1px solid ${isDone?C.accB:C.bd}`,borderRadius:9,padding:"10px 13px",marginBottom:5,cursor:"pointer",textAlign:"left"}}>
+            <div style={{width:20,height:20,borderRadius:5,border:`2px solid ${isDone?C.acc:C.muted2}`,background:isDone?C.acc:"transparent",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",color:"#000",fontSize:11,fontWeight:900}}>{isDone?"✓":""}</div>
+            <span style={{fontSize:16,flexShrink:0}}>{icon}</span>
+            <span style={{flex:1,color:isDone?C.muted:C.text,fontSize:13,textDecoration:isDone?"line-through":"none"}}>{name}</span>
+            <div style={{textAlign:"right",flexShrink:0}}>
+              <div style={{color:C.acc,fontSize:11,fontWeight:700}}>{qty}</div>
+              <div style={{color:C.muted,fontSize:10}}>{price}</div>
+            </div>
+          </button>
+        );
+      })}
+      <button onClick={()=>{setChecked([]);LS.set("gu_groc_"+selWeek,[]);}} style={{width:"100%",background:C.s2,border:`1px solid ${C.bd}`,borderRadius:9,padding:"10px",color:C.muted,fontWeight:700,fontSize:12,cursor:"pointer",marginTop:8}}>
+        🔄 Réinitialiser la liste semaine {selWeek+1}
+      </button>
+
+      {/* MEAL PREP RECIPES */}
+      <div style={{color:C.pink,fontSize:10,fontWeight:700,letterSpacing:2,textTransform:"uppercase",margin:"20px 0 10px"}}>🍱 RECETTES MEAL PREP — DIMANCHE SEM. {selWeek+1}</div>
+      
+      {[
+        {title:"🍗 Poulet Rôti (pour toute la semaine)",time:"30 min four",color:C.acc,ing:["1,2kg poitrines de poulet","2 c.s. huile d'olive","3 gousses ail émincées","1 c.t. paprika fumé","1 c.t. origan","Sel rose + poivre"],steps:["Préchauffer le four à 200°C","Mélanger huile + ail + paprika + origan + sel","Badigeonner le poulet de la marinade","Enfourner 25–28 min jusqu'à 74°C interne","Laisser reposer 5 min avant de trancher en cubes","Diviser en 5 portions de 175g dans les Tupperware"]},
+        {title:"🐟 Saumon Teriyaki (2 portions mardi)",time:"15 min poêle",color:C.teal,ing:["500g filets de saumon (2 × 250g)","2 c.s. sauce soja réduite sodium","1 c.t. miel naturel","1 c.t. gingembre râpé","1 c.t. ail en poudre","Spray huile de coco"],steps:["Mélanger soja + miel + gingembre + ail = sauce teriyaki","Mariner le saumon 10 min dans la sauce","Poêle antiadhésive à feu moyen-vif avec spray coco","4 min de chaque côté sans toucher","Laisser refroidir avant de couvrir","Réfrigérateur — consommer lundi soir ou mardi"]},
+        {title:"🥩 Boeuf Haché Épicé (mercredi + samedi)",time:"15 min poêle",color:C.red,ing:["350g boeuf haché maigre 90%","1 c.t. cumin","1 c.t. paprika fumé","1 c.t. ail en poudre","½ c.t. chili doux","Sel rose + poivre"],steps:["Chauffer poêle à feu vif, PAS d'huile (le gras du boeuf suffit)","Ajouter le boeuf haché, casser en petits morceaux","Cuire 5–7 min en remuant","Égoutter le surplus de gras avec une cuillère","Ajouter toutes les épices, mélanger 1 min","Diviser en 2 portions dans les Tupperware"]},
+        {title:"🐠 Tilapia (jeudi)",time:"12 min poêle",color:C.blue,ing:["400g filets tilapia (décongelés)","1 c.t. origan","1 c.t. ail en poudre","Jus de ½ citron","1 c.s. huile d'olive","Sel rose + poivre"],steps:["Sécher les filets avec du papier absorbant (important)","Assaisonner des 2 côtés : sel + poivre + ail + origan","Poêle à feu moyen-vif avec huile d'olive","3–4 min de chaque côté selon l'épaisseur","Presser le citron en fin de cuisson","Laisser refroidir — réfrigérateur 3 jours max"]},
+        {title:"🥦 Légumes Rôtis (toute la semaine)",time:"25 min four",color:C.ora,ing:["1 tête de brocoli en fleurons","2 courgettes en demi-lunes","2 poivrons en lanières","200g champignons tranchés","2 c.s. huile d'olive","Sel rose + poivre + herbes de Provence"],steps:["Préchauffer le four à 220°C","Couper tous les légumes en morceaux égaux","Mélanger avec huile d'olive + sel + poivre + herbes","Étaler sur 1–2 plaques en UNE seule couche (ne pas empiler)","Rôtir 20–22 min en retournant à mi-cuisson","Diviser en 7 portions pour toute la semaine"]},
+        {title:"🥚 Oeufs Durs (10 pour la semaine)",time:"15 min total",color:C.purple,ing:["10 oeufs frais","Eau froide","1 c.s. vinaigre blanc (évite les fissures)","Eau glacée pour arrêter la cuisson"],steps:["Mettre les oeufs dans une casserole, couvrir d'eau froide","Ajouter le vinaigre blanc","Porter à ébullition à feu vif","Réduire à feu moyen, cuire exactement 10 min","Transférer immédiatement dans l'eau glacée 5 min","Garder en coquille au réfrigérateur — se conservent 7 jours"]},
+      ].map((r,i)=>(
+        <div key={i} style={{background:C.s2,border:`1px solid ${C.bd}`,borderLeft:`3px solid ${r.color}`,borderRadius:11,padding:"13px 15px",marginBottom:10}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+            <div style={{fontWeight:700,fontSize:14,color:C.text}}>{r.title}</div>
+            <span style={{color:r.color,fontSize:10,fontWeight:700,background:r.color+"20",padding:"2px 8px",borderRadius:99,whiteSpace:"nowrap"}}>⏱ {r.time}</span>
+          </div>
+          <div style={{color:r.color,fontSize:10,fontWeight:700,letterSpacing:1,marginBottom:5}}>INGRÉDIENTS</div>
+          {r.ing.map((ing,j)=>(
+            <div key={j} style={{color:C.muted,fontSize:12,paddingLeft:6,marginBottom:2}}>· {ing}</div>
+          ))}
+          <div style={{color:r.color,fontSize:10,fontWeight:700,letterSpacing:1,margin:"10px 0 5px"}}>ÉTAPES</div>
+          {r.steps.map((step,j)=>(
+            <div key={j} style={{display:"flex",gap:7,marginBottom:5}}>
+              <span style={{color:r.color,fontSize:10,fontWeight:700,minWidth:16,marginTop:2,flexShrink:0}}>{j+1}.</span>
+              <span style={{color:C.text,fontSize:12,lineHeight:1.5}}>{step}</span>
+            </div>
+          ))}
+        </div>
+      ))}
+
+
+
+      {/* COSTCO — juste sous la liste hebdo */}
+      <div style={{height:1,background:C.bd,margin:"16px 0"}}/>
+      <div style={{color:C.blue,fontSize:11,fontWeight:700,letterSpacing:1.2,textTransform:"uppercase",marginBottom:10}}>🏪 COSTCO — STOCK MENSUEL (1× / mois)</div>
+      <div style={{background:C.blueD,border:`1px solid ${C.blue}40`,borderRadius:10,padding:"10px 14px",marginBottom:10}}>
+        <div style={{color:C.text,fontSize:12}}>Ces articles se gardent 1 mois+ — achète en gros à Costco, pas à Maxi. Budget : <strong style={{color:C.blue}}>~100–130$/mois</strong></div>
+      </div>
+      <CostcoList/>
+
+      {/* Menu semaine */}
+      <div style={{color:C.pink,fontSize:10,fontWeight:700,letterSpacing:2,textTransform:"uppercase",margin:"20px 0 10px"}}>🍽️ MENU DE LA SEMAINE {selWeek+1}</div>
+      {WEEKLY_MEALS.map((day,i)=>(
+        <div key={i} style={{background:C.s2,border:`1px solid ${C.bd}`,borderLeft:`3px solid ${WCOLS[i%WCOLS.length]}`,borderRadius:10,padding:"11px 14px",marginBottom:7}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+            <div style={{color:C.text,fontWeight:700,fontSize:13}}>{day.day}</div>
+            <div style={{color:C.ora,fontSize:11,fontWeight:700}}>{day.protein}</div>
+          </div>
+          {[["12h00",day.r1,C.acc],["15h30",day.r2,C.teal],["18h30",day.r3,C.pink]].map(([time,meal,color])=>(
+            <div key={time} style={{display:"flex",gap:8,marginBottom:4}}>
+              <span style={{color,fontSize:10,fontWeight:700,minWidth:36,marginTop:2}}>{time}</span>
+              <span style={{color:C.text,fontSize:12}}>{meal.name} <span style={{color:C.muted}}>· {meal.prot}g prot.</span></span>
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+
+// ── CYCLE TAB ─────────────────────────────────────────────────────────────────
+function CycleTab(){
+  const [data, setData] = useState(()=>LS.get("gu_cycle",{lastPeriod:"",cycleLen:28,log:[],energy:[],mood:[]}));
+  const [lastP, setLastP] = useState(data.lastPeriod||"");
+  const [energy, setEnergy] = useState("");
+  const [mood, setMood] = useState("");
+  const [saved, setSaved] = useState(false);
+
+  const save=(updated)=>{setData(updated);LS.set("gu_cycle",updated);setSaved(true);setTimeout(()=>setSaved(false),2000);};
+
+  const saveLastPeriod=()=>{
+    const u={...data,lastPeriod:lastP};
+    save(u);
+  };
+
+  const saveDaily=()=>{
+    if(!energy&&!mood) return;
+    const entry={date:new Date().toLocaleDateString("fr-CA"),energy:parseInt(energy)||null,mood:parseInt(mood)||null};
+    const u={...data,log:[...data.log,entry]};
+    save(u); setEnergy(""); setMood("");
+  };
+
+  // Calculate cycle phase
+  const getPhase=()=>{
+    if(!data.lastPeriod) return null;
+    const last=new Date(data.lastPeriod);
+    const today2=new Date(); today2.setHours(0,0,0,0);
+    const dayOfCycle=Math.floor((today2-last)/864e5)+1;
+    if(dayOfCycle<=5) return {phase:"🔴 Menstruation",days:`Jour ${dayOfCycle}/5`,color:C.red,tip:"Sois douce avec toi-même. Entraînement léger ou repos. Magnésium double dose.",kcal:"+100–150 kcal autorisés",train:"Marche ou yoga — pas de HIIT"};
+    if(dayOfCycle<=13) return {phase:"🌱 Folliculaire",days:`Jour ${dayOfCycle}/28`,color:C.teal,tip:"Énergie qui monte ! C'est le moment de pousser fort à l'entraînement.",kcal:"Plan standard",train:"Intensité haute — augmenter les poids"};
+    if(dayOfCycle<=15) return {phase:"⚡ Ovulation",days:`Jour ${dayOfCycle}/28`,color:C.acc,tip:"Pic d'énergie absolue ! Force et endurance au maximum.",kcal:"Plan standard",train:"Séance la plus intense de la semaine !"};
+    if(dayOfCycle<=28) return {phase:"🌙 Lutéale",days:`Jour ${dayOfCycle}/28`,color:C.purple,tip:"Fringales sucrées normales. Prévois : chocolat noir 85%, dattes, fruits. Rétention eau possible.",kcal:"+100–150 kcal autorisés",train:"Intensité modérée — écoute ton corps"};
+    return {phase:"🔴 Règles attendues",days:"Bientôt",color:C.red,tip:"Les règles arrivent bientôt. Prépare magnésium + snacks sains.",kcal:"+100–150 kcal autorisés",train:"Entraînement léger"};
+  };
+
+  const phase=getPhase();
+  const inp={background:C.s3,border:`1px solid ${C.bd}`,borderRadius:8,padding:"10px 12px",color:C.text,fontSize:14,width:"100%",marginBottom:8,outline:"none"};
+  const lbl={color:C.muted,fontSize:10,fontWeight:700,letterSpacing:1,textTransform:"uppercase",marginBottom:4,display:"block"};
+
+  return(
+    <div>
+      {saved&&<div style={{background:C.accD,border:`1px solid ${C.accB}`,borderRadius:9,padding:"10px 14px",marginBottom:12,color:C.acc,fontWeight:700,fontSize:13,textAlign:"center"}}>✓ Enregistré !</div>}
+      {milestone&&(
+        <div style={{background:milestone.color+"25",border:`2px solid ${milestone.color}`,borderRadius:13,padding:"16px",marginBottom:12,textAlign:"center",animation:"pulse 0.5s ease"}}>
+          <div style={{fontSize:32,marginBottom:6}}>🎊</div>
+          <div style={{color:milestone.color,fontWeight:900,fontSize:18,lineHeight:1.3}}>{milestone.msg}</div>
+          <div style={{color:C.text,fontSize:13,marginTop:6}}>Continue comme ça — tu es INARRÊTABLE ! 💪</div>
+        </div>
+      )}
+
+      {/* Phase actuelle */}
+      {phase&&(
+        <div style={{background:phase.color+"18",border:`1px solid ${phase.color}40`,borderRadius:13,padding:"14px 16px",marginBottom:14}}>
+          <div style={{color:phase.color,fontWeight:700,fontSize:16,marginBottom:4}}>{phase.phase}</div>
+          <div style={{color:C.muted,fontSize:11,marginBottom:10}}>{phase.days}</div>
+          <p style={{color:C.text,fontSize:13,lineHeight:1.6,marginBottom:8}}>{phase.tip}</p>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+            <div style={{background:C.s3,borderRadius:8,padding:"8px 10px"}}>
+              <div style={{color:phase.color,fontSize:9,fontWeight:700,letterSpacing:1}}>CALORIES</div>
+              <div style={{color:C.text,fontSize:12,marginTop:2}}>{phase.kcal}</div>
+            </div>
+            <div style={{background:C.s3,borderRadius:8,padding:"8px 10px"}}>
+              <div style={{color:phase.color,fontSize:9,fontWeight:700,letterSpacing:1}}>ENTRAÎNEMENT</div>
+              <div style={{color:C.text,fontSize:12,marginTop:2}}>{phase.train}</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Configurer le cycle */}
+      <div style={{background:C.s2,border:`1px solid ${C.bd}`,borderRadius:12,padding:"14px 16px",marginBottom:12}}>
+        <div style={{color:C.pink,fontWeight:700,fontSize:13,marginBottom:12}}>🔴 DATE DE MES DERNIÈRES RÈGLES</div>
+        <label style={lbl}>Date de début (AAAA-MM-JJ)</label>
+        <input type="date" value={lastP} onChange={e=>setLastP(e.target.value)} style={inp}/>
+        <button onClick={saveLastPeriod} style={{background:C.pink,color:"#000",border:"none",borderRadius:9,padding:"11px 0",fontWeight:700,fontSize:14,width:"100%",cursor:"pointer"}}>Enregistrer</button>
+      </div>
+
+      {/* Tracker énergie + humeur */}
+      <div style={{background:C.s2,border:`1px solid ${C.bd}`,borderRadius:12,padding:"14px 16px",marginBottom:12}}>
+        <div style={{color:C.acc,fontWeight:700,fontSize:13,marginBottom:12}}>⚡ ÉNERGIE & HUMEUR — AUJOURD'HUI</div>
+        <label style={lbl}>Niveau d'énergie (1 = épuisée · 10 = au top)</label>
+        <div style={{display:"flex",gap:6,marginBottom:12,flexWrap:"wrap"}}>
+          {[1,2,3,4,5,6,7,8,9,10].map(n=>(
+            <button key={n} onClick={()=>setEnergy(String(n))} style={{width:36,height:36,borderRadius:8,border:`2px solid ${energy===String(n)?C.acc:C.bd}`,background:energy===String(n)?C.acc:C.s3,color:energy===String(n)?"#000":C.muted,fontWeight:700,fontSize:13,cursor:"pointer"}}>{n}</button>
+          ))}
+        </div>
+        <label style={lbl}>Humeur (1 = très difficile · 10 = excellente)</label>
+        <div style={{display:"flex",gap:6,marginBottom:12,flexWrap:"wrap"}}>
+          {[1,2,3,4,5,6,7,8,9,10].map(n=>(
+            <button key={n} onClick={()=>setMood(String(n))} style={{width:36,height:36,borderRadius:8,border:`2px solid ${mood===String(n)?C.pink:C.bd}`,background:mood===String(n)?C.pink:C.s3,color:mood===String(n)?"#000":C.muted,fontWeight:700,fontSize:13,cursor:"pointer"}}>{n}</button>
+          ))}
+        </div>
+        <button onClick={saveDaily} style={{background:C.acc,color:"#000",border:"none",borderRadius:9,padding:"11px 0",fontWeight:700,fontSize:14,width:"100%",cursor:"pointer"}}>Enregistrer aujourd'hui</button>
+      </div>
+
+      {/* Historique */}
+      {data.log.length>0&&(
+        <div style={{background:C.s2,border:`1px solid ${C.bd}`,borderRadius:12,padding:"14px 16px"}}>
+          <div style={{color:C.muted,fontSize:10,fontWeight:700,letterSpacing:2,textTransform:"uppercase",marginBottom:10}}>HISTORIQUE ÉNERGIE & HUMEUR</div>
+          {[...data.log].reverse().slice(0,10).map((e,i)=>(
+            <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"7px 0",borderBottom:`1px solid ${C.bd}`}}>
+              <span style={{color:C.muted,fontSize:11}}>{e.date}</span>
+              <div style={{display:"flex",gap:12}}>
+                {e.energy&&<span style={{color:C.acc,fontWeight:700,fontSize:12}}>⚡ {e.energy}/10</span>}
+                {e.mood&&<span style={{color:C.pink,fontWeight:700,fontSize:12}}>😊 {e.mood}/10</span>}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── TIMER TAB ─────────────────────────────────────────────────────────────────
+function TimerTab(){
+  const [seconds, setSeconds] = useState(60);
+  const [running, setRunning] = useState(false);
+  const [initial, setInitial] = useState(60);
+  const [phase2, setPhase2] = useState("rest"); // rest | work
+
+  useEffect(()=>{
+    if(!running) return;
+    if(seconds<=0){
+      setRunning(false);
+      setPhase2(p=>p==="rest"?"work":"rest");
+      setSeconds(phase2==="rest"?30:60);
+      return;
+    }
+    const t=setTimeout(()=>setSeconds(s=>s-1),1000);
+    return ()=>clearTimeout(t);
+  },[running,seconds]);
+
+  const PRESETS=[
+    {label:"Repos 30s",sec:30,color:C.blue},
+    {label:"Repos 45s",sec:45,color:C.teal},
+    {label:"Repos 60s",sec:60,color:C.acc},
+    {label:"Repos 90s",sec:90,color:C.ora},
+    {label:"HIIT 30s",sec:30,color:C.red},
+    {label:"HIIT 45s",sec:45,color:C.pink},
+    {label:"Planche 30s",sec:30,color:C.purple},
+    {label:"Planche 60s",sec:60,color:C.purple},
+  ];
+
+  const pct=(seconds/initial)*100;
+  const mins=Math.floor(seconds/60);
+  const secs=seconds%60;
+
+  return(
+    <div>
+      <div style={{textAlign:"center",padding:"20px 0 10px"}}>
+        {/* Circle timer */}
+        <div style={{position:"relative",width:180,height:180,margin:"0 auto 20px"}}>
+          <svg width="180" height="180" style={{transform:"rotate(-90deg)"}}>
+            <circle cx="90" cy="90" r="80" fill="none" stroke={C.s3} strokeWidth="8"/>
+            <circle cx="90" cy="90" r="80" fill="none" stroke={phase2==="rest"?C.acc:C.red} strokeWidth="8"
+              strokeDasharray={`${2*Math.PI*80}`}
+              strokeDashoffset={`${2*Math.PI*80*(1-pct/100)}`}
+              strokeLinecap="round" style={{transition:"stroke-dashoffset .5s"}}/>
+          </svg>
+          <div style={{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",textAlign:"center"}}>
+            <div style={{color:phase2==="rest"?C.acc:C.red,fontWeight:900,fontSize:42,lineHeight:1,fontFamily:"monospace"}}>
+              {mins>0?`${mins}:${String(secs).padStart(2,"0")}`:secs}
+            </div>
+            <div style={{color:C.muted,fontSize:12,marginTop:4}}>{phase2==="rest"?"⏸ REPOS":"💪 EFFORT"}</div>
+          </div>
+        </div>
+
+        <div style={{display:"flex",gap:10,justifyContent:"center",marginBottom:20}}>
+          <button onClick={()=>setRunning(r=>!r)} style={{background:running?C.red:C.acc,color:"#000",border:"none",borderRadius:12,padding:"12px 28px",fontWeight:900,fontSize:16,cursor:"pointer"}}>
+            {running?"⏸ PAUSE":"▶ START"}
+          </button>
+          <button onClick={()=>{setRunning(false);setSeconds(initial);}} style={{background:C.s2,color:C.muted,border:`1px solid ${C.bd}`,borderRadius:12,padding:"12px 20px",fontWeight:700,fontSize:14,cursor:"pointer"}}>↺ RESET</button>
+        </div>
+      </div>
+
+      <div style={{color:C.muted,fontSize:10,fontWeight:700,letterSpacing:2,textTransform:"uppercase",marginBottom:10}}>PRÉRÉGLAGES RAPIDES</div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+        {PRESETS.map((p,i)=>(
+          <button key={i} onClick={()=>{setRunning(false);setSeconds(p.sec);setInitial(p.sec);}} style={{background:C.s2,border:`1px solid ${C.bd}`,borderRadius:10,padding:"11px 14px",cursor:"pointer",textAlign:"left"}}>
+            <div style={{color:p.color,fontWeight:700,fontSize:13}}>{p.label}</div>
+            <div style={{color:C.muted,fontSize:11,marginTop:2}}>{p.sec} secondes</div>
+          </button>
+        ))}
+      </div>
+
+      {/* Workout guide */}
+      <div style={{color:C.acc,fontSize:10,fontWeight:700,letterSpacing:2,textTransform:"uppercase",margin:"20px 0 10px"}}>📋 GUIDE ENTRAÎNEMENT</div>
+      {[
+        {ex:"Goblet Squat",sets:"3 × 12–15",rest:"60s",tip:"Dos droit, genoux dans l'axe"},
+        {ex:"Romanian Deadlift",sets:"3 × 12",rest:"60s",tip:"DOS PLAT — hanches reculées"},
+        {ex:"Hip Thrust",sets:"3 × 15",rest:"60s",tip:"Poussée explosive vers le haut"},
+        {ex:"Fentes alternées",sets:"3 × 10/côté",rest:"60s",tip:"Genou arrière proche du sol"},
+        {ex:"Planche",sets:"3 × 30–60s",rest:"30s",tip:"Corps rigide, respire"},
+        {ex:"Arnold Press",sets:"3 × 12",rest:"60s",tip:"Rotation complète du poignet"},
+        {ex:"Rowing unilatéral",sets:"3 × 12/côté",rest:"60s",tip:"Coude haut, dos plat"},
+        {ex:"Crunch obliques",sets:"3 × 15/côté",rest:"30s",tip:"Rotation vraie, pas juste les bras"},
+      ].map((e,i)=>(
+        <div key={i} style={{background:C.s2,border:`1px solid ${C.bd}`,borderRadius:10,padding:"10px 14px",marginBottom:7,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div>
+            <div style={{fontWeight:700,fontSize:13,color:C.text}}>{e.ex}</div>
+            <div style={{color:C.muted,fontSize:11,marginTop:2}}>{e.tip}</div>
+          </div>
+          <div style={{textAlign:"right"}}>
+            <div style={{color:C.acc,fontSize:12,fontWeight:700}}>{e.sets}</div>
+            <button onClick={()=>{const s=parseInt(e.rest);setSeconds(s);setInitial(s);setRunning(false);}} style={{color:C.blue,fontSize:10,background:"none",border:"none",cursor:"pointer",marginTop:2}}>⏱ {e.rest}</button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── RAPPORT TAB ───────────────────────────────────────────────────────────────
+function RapportTab(){
+  const [prog] = useState(()=>LS.get("gu_prog",{weights:[],measures:[],watch:[],photos:[]}));
+  const [cycle] = useState(()=>LS.get("gu_cycle",{log:[]}));
+  const [extras, setExtras] = useState({difficulties:"",wins:"",hunger:"5",notes:""});
+  const [copied, setCopied] = useState(false);
+
+  // Get latest data
+  const lastWeight = prog.weights.length>0 ? prog.weights[prog.weights.length-1].value : "—";
+  const firstWeight = prog.weights.length>0 ? prog.weights[0].value : 190;
+  const totalLost = prog.weights.length>0 ? (firstWeight - lastWeight).toFixed(1) : "0";
+  const lastMeasures = prog.measures.length>0 ? prog.measures[prog.measures.length-1] : null;
+  const lastWatch = prog.watch.length>0 ? prog.watch.slice(-7) : [];
+  const watchDays = lastWatch.length;
+  const avgSteps = watchDays>0 ? Math.round(lastWatch.filter(w=>w.steps).reduce((a,b)=>a+(parseInt(b.steps)||0),0)/Math.max(lastWatch.filter(w=>w.steps).length,1)) : null;
+  const avgSleep = watchDays>0 ? (lastWatch.filter(w=>w.sleep).reduce((a,b)=>a+(parseFloat(b.sleep)||0),0)/Math.max(lastWatch.filter(w=>w.sleep).length,1)).toFixed(1) : null;
+  const avgCal = watchDays>0 ? Math.round(lastWatch.filter(w=>w.calories).reduce((a,b)=>a+(parseInt(b.calories)||0),0)/Math.max(lastWatch.filter(w=>w.calories).length,1)) : null;
+  const avgHR = watchDays>0 ? Math.round(lastWatch.filter(w=>w.hr).reduce((a,b)=>a+(parseInt(b.hr)||0),0)/Math.max(lastWatch.filter(w=>w.hr).length,1)) : null;
+  const daysGoal = lastWatch.filter(w=>parseInt(w.steps)>=10000).length;
+  const lastEnergy = cycle.log.length>0 ? cycle.log[cycle.log.length-1].energy : "—";
+  const lastMood = cycle.log.length>0 ? cycle.log[cycle.log.length-1].mood : "—";
+
+  const generateReport=()=>{
+    return `📊 RAPPORT SEMAINE ${todayW+1} — ${new Date().toLocaleDateString("fr-CA")}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚖️ POIDS & MESURES
+• Poids actuel : ${lastWeight} lbs
+• Poids départ : ${firstWeight} lbs
+• Total perdu : ${totalLost} lbs
+${lastMeasures?`• Taille : ${lastMeasures.waist||"—"} · Hanches : ${lastMeasures.hips||"—"} · Bras : ${lastMeasures.arm||"—"} · Cuisse : ${lastMeasures.thigh||"—"}`:"• Mesures : non enregistrées"}
+
+⌚ APPLE WATCH — MOYENNE 7 JOURS (${watchDays} jours enregistrés)
+• Pas moyens : ${avgSteps?avgSteps.toLocaleString("fr")+"/ jour":"non enregistré"}
+• Jours objectif 10 000 pas : ${watchDays>0?daysGoal+"/"+watchDays:"—"}
+• Sommeil moyen : ${avgSleep||"—"}h/nuit
+• Calories actives : ${avgCal||"—"} kcal/jour
+• FC repos moyenne : ${avgHR||"—"} bpm
+
+⚡ ÉNERGIE & HUMEUR
+• Niveau d'énergie : ${lastEnergy}/10
+• Humeur : ${lastMood}/10
+
+💪 ADHÉRENCE
+• Difficultés : ${extras.difficulties||"Non renseigné"}
+• Ce qui a bien marché : ${extras.wins||"Non renseigné"}
+• Niveau de faim (1–10) : ${extras.hunger}/10
+• Notes : ${extras.notes||"Aucune"}
+
+📍 Semaine ${todayW+1}/18 · Phase ${todayW<10?"MAX 🔥":"FINISH ✨"}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Coach — analyse tout et ajuste le plan.`;
+  };
+
+  const copyReport=()=>{
+    const report=generateReport();
+    navigator.clipboard.writeText(report).then(()=>{setCopied(true);setTimeout(()=>setCopied(false),3000);}).catch(()=>{
+      // Fallback
+      const el=document.createElement("textarea");
+      el.value=report;document.body.appendChild(el);el.select();document.execCommand("copy");document.body.removeChild(el);
+      setCopied(true);setTimeout(()=>setCopied(false),3000);
+    });
+  };
+
+  const inp={background:C.s3,border:`1px solid ${C.bd}`,borderRadius:8,padding:"10px 12px",color:C.text,fontSize:13,width:"100%",marginBottom:8,outline:"none"};
+  const lbl={color:C.muted,fontSize:10,fontWeight:700,letterSpacing:1,textTransform:"uppercase",marginBottom:4,display:"block"};
+
+  return(
+    <div>
+      <div style={{background:C.accD,border:`1px solid ${C.accB}`,borderRadius:13,padding:"14px 16px",marginBottom:14}}>
+        <div style={{color:C.acc,fontWeight:700,fontSize:14,marginBottom:5}}>📋 RAPPORT COACH — SEMAINE {todayW+1}</div>
+        <p style={{color:C.text,fontSize:13,lineHeight:1.6,margin:0}}>Remplis les quelques champs ci-dessous, puis appuie sur <strong style={{color:C.acc}}>"Copier le rapport"</strong> et colle-le directement à ton coach (Claude) dans une nouvelle conversation !</p>
+      </div>
+
+      {/* Auto-filled data preview */}
+      <div style={{background:C.s2,border:`1px solid ${C.bd}`,borderRadius:12,padding:"14px 16px",marginBottom:12}}>
+        <div style={{color:C.teal,fontWeight:700,fontSize:12,marginBottom:10}}>✅ DONNÉES AUTO-REMPLIES depuis l'app</div>
+        {[
+          ["⚖️ Poids actuel",`${lastWeight} lbs`],
+          ["📉 Total perdu depuis départ",`${totalLost} lbs`],
+          ["👟 Pas moyens (7 jours)",avgSteps?`${avgSteps.toLocaleString("fr")}/jour`:"Non enregistré"],
+          ["🏆 Jours objectif 10k pas",watchDays>0?`${daysGoal}/${watchDays} jours`:"Non enregistré"],
+          ["🌙 Sommeil moyen (7 jours)",avgSleep?`${avgSleep}h/nuit`:"Non enregistré"],
+          ["🔥 Calories actives (7 jours)",avgCal?`${avgCal} kcal/jour`:"Non enregistré"],
+          ["❤️ FC repos moyenne",avgHR?`${avgHR} bpm`:"Non enregistré"],
+          ["⚡ Énergie (dernier)",lastEnergy!=="—"?`${lastEnergy}/10`:"Non enregistré"],
+          ["😊 Humeur (dernier)",lastMood!=="—"?`${lastMood}/10`:"Non enregistré"],
+        ].map(([l,v],i)=>(
+          <div key={i} style={{display:"flex",justifyContent:"space-between",padding:"6px 0",borderBottom:`1px solid ${C.bd}`}}>
+            <span style={{color:C.muted,fontSize:12}}>{l}</span>
+            <span style={{color:C.text,fontSize:12,fontWeight:600}}>{v}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Manual fields */}
+      <div style={{background:C.s2,border:`1px solid ${C.bd}`,borderRadius:12,padding:"14px 16px",marginBottom:12}}>
+        <div style={{color:C.ora,fontWeight:700,fontSize:12,marginBottom:12}}>✏️ À COMPLÉTER MANUELLEMENT</div>
+
+        <label style={lbl}>Difficultés de la semaine</label>
+        <textarea value={extras.difficulties} onChange={e=>setExtras({...extras,difficulties:e.target.value})} placeholder="ex: j'ai eu du mal à résister le jeudi soir, j'étais très fatiguée mardi..." style={{...inp,minHeight:70,resize:"vertical"}}/>
+
+        <label style={lbl}>Ce qui a bien marché</label>
+        <textarea value={extras.wins} onChange={e=>setExtras({...extras,wins:e.target.value})} placeholder="ex: j'ai fait tous mes pas cette semaine, j'ai bien dormi, j'ai aimé les recettes..." style={{...inp,minHeight:70,resize:"vertical"}}/>
+
+        <label style={lbl}>Niveau de faim général (1 = jamais faim · 10 = toujours faim)</label>
+        <div style={{display:"flex",gap:5,marginBottom:12,flexWrap:"wrap"}}>
+          {[1,2,3,4,5,6,7,8,9,10].map(n=>(
+            <button key={n} onClick={()=>setExtras({...extras,hunger:String(n)})} style={{width:34,height:34,borderRadius:7,border:`2px solid ${extras.hunger===String(n)?C.ora:C.bd}`,background:extras.hunger===String(n)?C.ora:C.s3,color:extras.hunger===String(n)?"#000":C.muted,fontWeight:700,fontSize:12,cursor:"pointer"}}>{n}</button>
+          ))}
+        </div>
+
+        <label style={lbl}>Notes additionnelles pour le coach</label>
+        <textarea value={extras.notes} onChange={e=>setExtras({...extras,notes:e.target.value})} placeholder="ex: j'ai eu mes règles cette semaine, j'ai un événement spécial la semaine prochaine, je voyage..." style={{...inp,minHeight:60,resize:"vertical"}}/>
+      </div>
+
+      {/* Copy button */}
+      <button onClick={copyReport} style={{width:"100%",background:copied?C.teal:C.acc,color:"#000",border:"none",borderRadius:12,padding:"14px 0",fontWeight:900,fontSize:16,cursor:"pointer",marginBottom:8,transition:"background .3s"}}>
+        {copied?"✓ RAPPORT COPIÉ — Colle-le à Claude !":"📋 COPIER MON RAPPORT COACH"}
+      </button>
+
+      {/* Instructions */}
+      <div style={{background:C.s2,border:`1px solid ${C.bd}`,borderRadius:10,padding:"12px 14px"}}>
+        <div style={{color:C.acc,fontWeight:700,fontSize:11,marginBottom:6}}>💡 COMMENT ENVOYER LE RAPPORT</div>
+        {["1. Appuie sur 'Copier mon rapport' ci-dessus","2. Ouvre Claude (claude.ai) dans une nouvelle conversation","3. Colle le rapport et envoie","4. Claude analysera tout et ajustera ton plan !"].map((s,i)=>(
+          <div key={i} style={{color:C.text,fontSize:12,marginBottom:4}}>· {s}</div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── MAIN APP ──────────────────────────────────────────────────────────────────
+// ── COSTCO LIST COMPONENT ─────────────────────────────────────────────────────
+function CostcoList(){
+  const costcoItems = [
+    ["🍗","Poitrines poulet congelées","2× 2kg","~32–36$"],
+    ["🥚","Oeufs grands format","2× 2 douzaines","~12–15$"],
+    ["🥤","Whey CHOCOLAT (si épuisée)","1 pot 2kg","~45–55$"],
+    ["🫘","Amandes non salées","1kg sac","~14–16$"],
+    ["🥣","Flocons d'avoine","4kg sac","~12–15$"],
+    ["🫒","Huile d'olive extra vierge","3L","~18–22$"],
+    ["💊","Créatine (si épuisée)","500g pot","~20–25$"],
+    ["💊","Vitamine D3+K2 (si épuisée)","Grand format","~18–22$"],
+    ["💊","Oméga-3 (si épuisé)","Grand format","~28–35$"],
+    ["🧄","Ail haché en pot","Grand pot","~8$"],
+    ["🍶","Sauce soja réduite sodium","Grand format","~6–8$"],
+    ["🥛","Lait écrémé","2× 2L","~7–8$"],
+  ];
+  const [costcoChecked, setCostcoChecked] = useState(()=>LS.get("gu_costco",[]));
+  const toggle = (name) => {
+    const u = costcoChecked.includes(name)?costcoChecked.filter(n=>n!==name):[...costcoChecked,name];
+    setCostcoChecked(u); LS.set("gu_costco",u);
+  };
+  return (
+    <div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+        <div style={{color:C.muted,fontSize:11}}>{costcoChecked.length}/{costcoItems.length} articles cochés</div>
+        <button onClick={()=>{setCostcoChecked([]);LS.set("gu_costco",[]);}} style={{background:C.s2,border:`1px solid ${C.bd}`,borderRadius:7,padding:"5px 10px",color:C.muted,fontSize:11,cursor:"pointer"}}>🔄 Reset</button>
+      </div>
+      {costcoItems.map(([icon,name,qty,price],i)=>{
+        const done = costcoChecked.includes(name);
+        return(
+          <button key={i} onClick={()=>toggle(name)} style={{width:"100%",display:"flex",alignItems:"center",gap:10,background:done?C.blueD:C.s2,border:`1px solid ${done?C.blue+"50":C.bd}`,borderRadius:9,padding:"9px 12px",marginBottom:5,cursor:"pointer",textAlign:"left"}}>
+            <div style={{width:20,height:20,borderRadius:5,border:`2px solid ${done?C.blue:C.muted2}`,background:done?C.blue:"transparent",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",color:"#000",fontSize:11,fontWeight:900}}>{done?"✓":""}</div>
+            <span style={{fontSize:15,flexShrink:0}}>{icon}</span>
+            <span style={{flex:1,color:done?C.muted:C.text,fontSize:13,textDecoration:done?"line-through":"none"}}>{name}</span>
+            <div style={{textAlign:"right",flexShrink:0}}>
+              <div style={{color:C.blue,fontSize:11,fontWeight:700}}>{qty}</div>
+              <div style={{color:C.muted,fontSize:10}}>{price}</div>
+            </div>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── REPAS MENU SELECTOR ───────────────────────────────────────────────────────
+function RepasMenuSelector(){
+  const [selW, setSelW] = useState(todayW);
+  const meals = getWeeklyMeals(selW);
+  const cycle = ['A','B','C','D'][selW % 4];
+  return (
+    <>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+        <div style={{color:C.acc,fontSize:11,fontWeight:700,letterSpacing:1.2,textTransform:"uppercase"}}>🍽️ MENU SEMAINE — PROTÉINE DIFFÉRENTE CHAQUE JOUR</div>
+        <div style={{color:C.acc,fontSize:11,fontWeight:700,background:C.accD,padding:"3px 10px",borderRadius:99,border:`1px solid ${C.accB}`,flexShrink:0,marginLeft:8}}>Cycle {cycle}</div>
+      </div>
+      <div style={{display:"flex",gap:5,overflowX:"auto",scrollbarWidth:"none",marginBottom:12}}>
+        {Array.from({length:TOTAL_WEEKS},(_,w)=>(
+          <button key={w} onClick={()=>setSelW(w)} style={{padding:"5px 10px",borderRadius:7,border:"none",cursor:"pointer",whiteSpace:"nowrap",fontSize:10,fontWeight:700,flexShrink:0,background:selW===w?C.acc:C.s2,color:selW===w?"#000":C.muted}}>S.{w+1}</button>
+        ))}
+      </div>
+      {meals.map((day,i)=>(
+        <div key={i} style={{background:C.s2,border:`1px solid ${C.bd}`,borderLeft:`3px solid ${WCOLS[i]}`,borderRadius:11,padding:"13px 15px",marginBottom:9}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+            <div style={{fontWeight:700,fontSize:14,color:C.text}}>{day.day}</div>
+            <div style={{color:C.ora,fontSize:12,fontWeight:700}}>{day.protein}</div>
+          </div>
+          {[["12h00",day.r1,C.acc],["15h00",day.r2,C.teal],["19h30",day.r3,C.pink]].map(([time,meal,color])=>(
+            <div key={time} style={{display:"flex",gap:10,marginBottom:7,alignItems:"flex-start"}}>
+              <span style={{color,fontSize:10,fontWeight:700,minWidth:36,marginTop:3}}>{time}</span>
+              <div style={{flex:1}}>
+                <div style={{color:C.text,fontSize:13,fontWeight:600}}>{meal.name}</div>
+                <div style={{color:C.muted,fontSize:11,marginTop:2}}>{meal.desc}</div>
+              </div>
+              <span style={{color,fontSize:10,fontWeight:700,flexShrink:0,marginTop:3}}>{meal.prot}g</span>
+            </div>
+          ))}
+        </div>
+      ))}
+    </>
+  );
+}
+
+
+// ── NOTES TAB ─────────────────────────────────────────────────────────────────
+function NotesTab(){
+  const [notes, setNotes] = useState(()=>LS.get("gu_notes",[]));
+  const [newNote, setNewNote] = useState("");
+  const [newTitle, setNewTitle] = useState("");
+  const [saved, setSaved] = useState(false);
+
+  const saveNote = () => {
+    if(!newNote.trim()) return;
+    const entry = {
+      id: Date.now(),
+      date: new Date().toLocaleDateString("fr-CA"),
+      week: todayW+1,
+      title: newTitle.trim() || `Sem. ${todayW+1} — ${new Date().toLocaleDateString("fr-CA")}`,
+      text: newNote.trim(),
+    };
+    const updated = [entry, ...notes];
+    setNotes(updated);
+    LS.set("gu_notes", updated);
+    setNewNote(""); setNewTitle(""); setSaved(true);
+    setTimeout(()=>setSaved(false),2000);
+  };
+
+  const deleteNote = (id) => {
+    const updated = notes.filter(n=>n.id!==id);
+    setNotes(updated);
+    LS.set("gu_notes", updated);
+  };
+
+  const inp = {background:C.s3,border:`1px solid ${C.bd}`,borderRadius:8,padding:"10px 12px",color:C.text,fontSize:13,width:"100%",marginBottom:8,outline:"none",resize:"vertical"};
+
+  return (
+    <div>
+      {saved&&<div style={{background:C.accD,border:`1px solid ${C.accB}`,borderRadius:9,padding:"10px 14px",marginBottom:12,color:C.acc,fontWeight:700,fontSize:13,textAlign:"center"}}>✓ Note enregistrée !</div>}
+
+      <div style={{background:C.s2,border:`1px solid ${C.bd}`,borderRadius:12,padding:"14px 16px",marginBottom:14}}>
+        <div style={{color:C.acc,fontWeight:700,fontSize:13,marginBottom:12}}>📝 NOUVELLE NOTE — SEMAINE {todayW+1}</div>
+        <input
+          type="text"
+          placeholder="Titre (optionnel)"
+          value={newTitle}
+          onChange={e=>setNewTitle(e.target.value)}
+          style={{...inp,marginBottom:8}}
+        />
+        <textarea
+          rows={4}
+          placeholder="Écris ici tes observations, ressenti, victoires, difficultés, questions pour le coach..."
+          value={newNote}
+          onChange={e=>setNewNote(e.target.value)}
+          style={inp}
+        />
+        <button onClick={saveNote} style={{background:C.acc,color:"#000",border:"none",borderRadius:9,padding:"11px 0",fontWeight:700,fontSize:14,width:"100%",cursor:"pointer"}}>
+          Enregistrer la note
+        </button>
+      </div>
+
+      {notes.length===0?(
+        <div style={{background:C.s2,border:`1px solid ${C.bd}`,borderRadius:10,padding:"20px",textAlign:"center"}}>
+          <div style={{fontSize:32,marginBottom:8}}>📓</div>
+          <div style={{color:C.muted,fontSize:13}}>Aucune note pour l'instant.<br/>Commence à écrire tes observations !</div>
+        </div>
+      ):(
+        <div>
+          <div style={{color:C.muted,fontSize:10,fontWeight:700,letterSpacing:2,textTransform:"uppercase",marginBottom:10}}>
+            {notes.length} NOTE{notes.length>1?"S":""} ENREGISTRÉE{notes.length>1?"S":""}
+          </div>
+          {notes.map((note,i)=>(
+            <div key={note.id||i} style={{background:C.s2,border:`1px solid ${C.bd}`,borderLeft:`3px solid ${WCOLS[(note.week-1)%WCOLS.length]}`,borderRadius:11,padding:"13px 15px",marginBottom:10}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
+                <div>
+                  <div style={{color:WCOLS[(note.week-1)%WCOLS.length],fontSize:10,fontWeight:700,letterSpacing:1,marginBottom:2}}>
+                    SEM. {note.week} · {note.date}
+                  </div>
+                  <div style={{color:C.text,fontWeight:700,fontSize:14}}>{note.title}</div>
+                </div>
+                <button onClick={()=>deleteNote(note.id)} style={{background:"none",border:"none",color:C.muted,fontSize:16,cursor:"pointer",padding:"0 4px",flexShrink:0}}>×</button>
+              </div>
+              <p style={{color:C.text,fontSize:13,lineHeight:1.6,margin:0,whiteSpace:"pre-wrap"}}>{note.text}</p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function App(){
+  const [tab,setTab]=useState("dash");
+  const [view,setView]=useState("home");
+  const [wi,setWi]=useState(0);
+  const [di,setDi]=useState(0);
+  const [checks,setChecks]=useState(()=>LS.get("gu_chk",{}));
+  const isMax=todayW<10;
+
+  useEffect(()=>{LS.set("gu_chk",checks);},[checks]);
+  const toggle=(key)=>setChecks(p=>({...p,[key]:!p[key]}));
+  const gPct=globalPct(checks);
+
+  return(
+    <div style={{background:C.bg,minHeight:"100vh",color:C.text,fontFamily:"system-ui,-apple-system,sans-serif",maxWidth:820,margin:"0 auto",paddingBottom:80}}>
+
+      {/* HEADER */}
+      <div style={{padding:"22px 16px 14px",background:`linear-gradient(180deg,#0C0C1A,${C.bg})`,borderBottom:`1px solid ${C.bd}`,position:"sticky",top:0,zIndex:30,backdropFilter:"blur(16px)"}}>
+        <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:7}}>
+          <div style={{width:6,height:6,borderRadius:"50%",background:C.acc,boxShadow:`0 0 8px ${C.acc}`}}/>
+          <span style={{color:C.muted,fontSize:10,letterSpacing:2,textTransform:"uppercase"}}>{diffDays>=0?`JOUR ${diffDays+1} · SEM. ${todayW+1}`:"DÉMARRE LUNDI PROCHAIN"}</span>
+        </div>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end"}}>
+          <div>
+            <h1 style={{margin:0,fontSize:21,fontWeight:900,lineHeight:1.1,letterSpacing:-0.5}}>GLOW UP<br/><span style={{color:C.acc}}>190 → 160 LBS</span></h1>
+            <p style={{color:C.muted,fontSize:11,margin:"5px 0 7px"}}>{isMax?"🔥 PHASE MAX · 1 350 kcal · IF 16:8":"✨ PHASE FINISH · 1 450 kcal · IF 16:8"}</p>
+          </div>
+          <div style={{textAlign:"right"}}>
+            <div style={{color:C.acc,fontWeight:900,fontSize:27,lineHeight:1}}>{gPct}%</div>
+            <div style={{color:C.muted,fontSize:10}}>plan global</div>
+          </div>
+        </div>
+        <div style={{background:C.s3,borderRadius:99,height:4,overflow:"hidden"}}>
+          <div style={{width:`${gPct}%`,height:"100%",background:`linear-gradient(90deg,${C.pink},${C.acc})`,borderRadius:99,transition:"width .4s"}}/>
+        </div>
+      </div>
+
+      {/* TOP NAV */}
+      <div style={{display:"flex",gap:3,padding:"8px 10px",borderBottom:`1px solid ${C.bd}`,overflowX:"auto",scrollbarWidth:"none",position:"sticky",top:106,zIndex:20,background:C.bg+"F5",backdropFilter:"blur(12px)"}}>
+        {TABS.map(t=>(
+          <button key={t.id} onClick={()=>{setTab(t.id);setView("home");}} style={{padding:"6px 11px",borderRadius:7,border:"none",cursor:"pointer",whiteSpace:"nowrap",fontSize:11,fontWeight:700,flexShrink:0,transition:"all .15s",background:tab===t.id?C.acc:C.s2,color:tab===t.id?"#000":C.muted}}>
+            {t.icon} {t.lbl}
+          </button>
+        ))}
+      </div>
+
+      <div style={{padding:"16px 14px"}}>
+
+        {/* ═══ DASH ═══ */}
+        {tab==="dash"&&(
+          <div>
+            <div style={{background:isMax?C.redD:C.tealD,border:`1px solid ${isMax?C.red:C.teal}40`,borderRadius:13,padding:"14px 16px",marginBottom:12}}>
+              <div style={{color:isMax?C.red:C.teal,fontWeight:700,fontSize:12,marginBottom:7}}>{isMax?"🔥 PHASE MAX — SEMAINES 1–10":"✨ PHASE FINISH — SEMAINES 11–18"}</div>
+              <p style={{fontSize:13,color:C.text,lineHeight:1.6,margin:0}}>{isMax?"1 350 kcal/jour · fenêtre 12h00–19h30 · 45min cardio · zéro féculent repas 2":"1 450 kcal/jour · fenêtre 12h00–20h00 · 30min cardio · féculents réintroduits"}</p>
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:10}}>
+              <Kpi icon="🔥" label="Calories/jour" value={isMax?"1 350":"1 450"} sub={"Phase "+(isMax?"MAX":"FINISH")} color={C.acc}/>
+              <Kpi icon="💪" label="Protéines" value={isMax?"145g":"140g"} sub="objectif quotidien" color={C.teal}/>
+              <Kpi icon="💧" label="Eau" value="3,5L" sub="minimum absolu" color={C.blue}/>
+              <Kpi icon="👟" label="Pas" value="10 000" sub="cible quotidienne" color={C.ora}/>
+            </div>
+            {/* Today */}
+            <button onClick={()=>{setTab("plan");setView("day");setWi(todayW);setDi(todayD);}} style={{width:"100%",background:`linear-gradient(135deg,${C.pinkD},${C.accD})`,border:`1px solid ${C.accB}`,borderRadius:13,padding:"13px 16px",cursor:"pointer",textAlign:"left",marginBottom:12}}>
+              <div style={{color:C.acc,fontSize:10,fontWeight:700,letterSpacing:1}}>→ AUJOURD'HUI</div>
+              <div style={{color:C.text,fontWeight:700,fontSize:16,marginTop:3}}>{DFULL[todayD]} {fmt(getDate(todayW,todayD))} · Sem. {todayW+1}</div>
+              <div style={{color:C.muted,fontSize:11,marginTop:2}}>Voir ma journée + repas du jour →</div>
+            </button>
+            {/* Today's protein */}
+            <div style={{background:C.s2,border:`1px solid ${C.bd}`,borderLeft:`3px solid ${C.ora}`,borderRadius:10,padding:"12px 14px",marginBottom:12}}>
+              <div style={{color:C.ora,fontWeight:700,fontSize:11,letterSpacing:1,marginBottom:6}}>🍽️ MENU D'AUJOURD'HUI — {WEEKLY_MEALS[todayD].protein}</div>
+              {[["12h00",WEEKLY_MEALS[todayD].r1,C.acc],["15h30",WEEKLY_MEALS[todayD].r2,C.teal],["18h30",WEEKLY_MEALS[todayD].r3,C.pink]].map(([time,meal,color])=>(
+                <div key={time} style={{display:"flex",gap:8,marginBottom:5}}>
+                  <span style={{color,fontSize:10,fontWeight:700,minWidth:36,marginTop:2}}>{time}</span>
+                  <div><span style={{color:C.text,fontSize:13,fontWeight:600}}>{meal.name}</span><br/><span style={{color:C.muted,fontSize:11}}>{meal.desc}</span></div>
+                </div>
+              ))}
+            </div>
+            {/* Week overview */}
+            <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:5,marginBottom:14}}>
+              {WEEKLY_MEALS.map((day,i)=>(
+                <div key={i} style={{background:i===todayD?C.accD:C.s2,border:`1px solid ${i===todayD?C.accB:C.bd}`,borderRadius:9,padding:"7px 3px",textAlign:"center"}}>
+                  <div style={{color:i===todayD?C.acc:C.muted,fontSize:9,fontWeight:700}}>{DNAMES[i]}</div>
+                  <div style={{fontSize:13,marginTop:2}}>{day.protein.split(" ")[0]}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ═══ PLAN ═══ */}
+        {tab==="plan"&&view==="home"&&(
+          <div>
+            <button onClick={()=>{setView("day");setWi(todayW);setDi(todayD);}} style={{width:"100%",background:`linear-gradient(135deg,${C.pinkD},${C.accD})`,border:`1px solid ${C.accB}`,borderRadius:13,padding:"12px 16px",cursor:"pointer",textAlign:"left",marginBottom:14}}>
+              <div style={{color:C.acc,fontSize:10,fontWeight:700,letterSpacing:1}}>→ AUJOURD'HUI</div>
+              <div style={{color:C.text,fontWeight:700,fontSize:16,marginTop:3}}>{DFULL[todayD]} {fmt(getDate(todayW,todayD))}</div>
+            </button>
+            <div style={{color:C.muted,fontSize:10,letterSpacing:2,textTransform:"uppercase",marginBottom:10}}>18 SEMAINES</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+              {Array.from({length:TOTAL_WEEKS},(_,w)=>{
+                const p=weekProg(w,checks),col=WCOLS[w],isCurr=w===todayW;
+                return(
+                  <button key={w} onClick={()=>{setWi(w);setView("week");}} style={{background:isCurr?col+"18":C.s2,border:`1px solid ${isCurr?col+"50":C.bd}`,borderRadius:12,padding:"11px 13px",cursor:"pointer",textAlign:"left"}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                      <div style={{color:col,fontSize:10,fontWeight:700}}>SEM. {w+1}</div>
+                      <div style={{color:p.pct===100?C.acc:p.pct>50?C.ora:C.muted,fontWeight:900,fontSize:17}}>{p.pct}%</div>
+                    </div>
+                    <div style={{color:C.text,fontSize:11,fontWeight:600,marginTop:2}}>{THEMES[w]}</div>
+                    <div style={{color:C.muted,fontSize:9,marginTop:1}}>{fmt(getDate(w,0))}</div>
+                    {isCurr&&<div style={{color:col,fontSize:8,fontWeight:700,marginTop:3}}>◆ EN COURS</div>}
+                    <div style={{marginTop:7,background:C.s3,borderRadius:99,height:3}}><div style={{width:`${p.pct}%`,height:"100%",background:col,borderRadius:99}}/></div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {tab==="plan"&&view==="week"&&(()=>{
+          const col=WCOLS[wi],p=weekProg(wi,checks);
+          return(
+            <div>
+              <button onClick={()=>setView("home")} style={{background:C.s2,border:`1px solid ${C.bd}`,borderRadius:8,padding:"6px 13px",color:C.muted,cursor:"pointer",fontSize:11,fontWeight:700,marginBottom:12}}>← Semaines</button>
+              <div style={{background:col+"18",border:`1px solid ${col}40`,borderRadius:13,padding:"14px 16px",marginBottom:12}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                  <div>
+                    <div style={{color:C.muted,fontSize:9,letterSpacing:2,textTransform:"uppercase"}}>SEMAINE {wi+1}</div>
+                    <div style={{color:C.text,fontSize:16,fontWeight:900,marginTop:3}}>{THEMES[wi]}</div>
+                    <div style={{color:C.muted,fontSize:11,marginTop:2}}>{fmt(getDate(wi,0))} → {fmt(getDate(wi,6))}</div>
+                  </div>
+                  <div style={{color:col,fontWeight:900,fontSize:24,lineHeight:1}}>{p.pct}%</div>
+                </div>
+                <div style={{marginTop:10,background:C.s3,borderRadius:99,height:4}}><div style={{width:`${p.pct}%`,height:"100%",background:col,borderRadius:99}}/></div>
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:4,marginBottom:14}}>
+                {DNAMES.map((n,d)=>{
+                  const dp=dayProg(wi,d,checks);
+                  return(
+                    <button key={d} onClick={()=>{setDi(d);setView("day");}} style={{background:dp.pct===100?"rgba(212,255,107,.12)":C.s2,border:`1px solid ${dp.pct===100?"rgba(212,255,107,.4)":C.bd}`,borderRadius:9,padding:"8px 3px",textAlign:"center",cursor:"pointer"}}>
+                      <div style={{color:d===6?C.acc:C.muted,fontSize:9,fontWeight:700}}>{n}</div>
+                      <div style={{fontSize:12,marginTop:2}}>{WEEKLY_MEALS[d].protein.split(" ")[0]}</div>
+                      <div style={{color:dp.pct===100?C.acc:dp.pct>50?C.ora:C.muted,fontWeight:900,fontSize:11,marginTop:2}}>{dp.pct}%</div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })()}
+
+        {tab==="plan"&&view==="day"&&(()=>{
+          const tasks=buildTasks(wi,di),dp=dayProg(wi,di,checks),col=WCOLS[wi],isSun=di===6,isWork=di<4;
+          const meal=WEEKLY_MEALS[di];
+          const cats=[...new Set(tasks.map(t=>t.cat))];
+          return(
+            <div>
+              <button onClick={()=>setView("week")} style={{background:C.s2,border:`1px solid ${C.bd}`,borderRadius:8,padding:"6px 13px",color:C.muted,cursor:"pointer",fontSize:11,fontWeight:700,marginBottom:12}}>← Semaine {wi+1}</button>
+              <div style={{display:"flex",gap:4,overflowX:"auto",scrollbarWidth:"none",marginBottom:12}}>
+                {DNAMES.map((n,i)=>(
+                  <button key={i} onClick={()=>setDi(i)} style={{padding:"5px 11px",borderRadius:7,border:"none",cursor:"pointer",fontWeight:700,fontSize:10,whiteSpace:"nowrap",background:i===di?C.acc:C.s2,color:i===di?"#000":C.muted,flexShrink:0}}>{n}</button>
+                ))}
+              </div>
+              {/* Protein banner */}
+              <div style={{background:C.oraD,border:`1px solid ${C.ora}40`,borderLeft:`3px solid ${C.ora}`,borderRadius:10,padding:"10px 14px",marginBottom:10}}>
+                <div style={{color:C.ora,fontWeight:700,fontSize:12}}>PROTÉINE DU JOUR : {meal.protein}</div>
+              </div>
+              {/* Day header */}
+              <div style={{background:`linear-gradient(135deg,${col}12,${C.s1})`,border:`1px solid ${col}30`,borderRadius:13,padding:"14px 16px",marginBottom:13}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+                  <div>
+                    <div style={{color:isSun?C.acc:isWork?C.blue:C.pink,fontSize:9,fontWeight:700,letterSpacing:2,textTransform:"uppercase"}}>{isSun?"♻️ RESET DAY":isWork?"💼 JOUR TRAVAIL":"🌤️ JOUR OFF"}</div>
+                    <div style={{fontSize:20,fontWeight:900,marginTop:3}}>{DFULL[di]}</div>
+                    <div style={{color:C.muted,fontSize:12,marginTop:2}}>{fmt(getDate(wi,di))} · {wi<10?"🔥 MAX":"✨ FINISH"}</div>
+                  </div>
+                  <div style={{textAlign:"right"}}>
+                    <div style={{color:dp.pct===100?C.acc:C.ora,fontWeight:900,fontSize:28,lineHeight:1}}>{dp.pct}%</div>
+                    <div style={{color:C.muted,fontSize:10}}>{dp.d}/{dp.t}</div>
+                  </div>
+                </div>
+                <div style={{marginTop:11,background:C.s3,borderRadius:99,height:4}}><div style={{width:`${dp.pct}%`,height:"100%",background:dp.pct===100?C.acc:C.ora,borderRadius:99,transition:"width .3s"}}/></div>
+                {dp.pct===100&&<div style={{color:C.acc,fontSize:11,fontWeight:700,marginTop:8,textAlign:"center"}}>✨ JOURNÉE COMPLÈTE — TU DÉCHIRES !</div>}
+              </div>
+              {cats.map(cat=>{
+                const color=catColors[cat]||C.acc;
+                return(
+                  <div key={cat}>
+                    <div style={{color,fontSize:10,fontWeight:700,letterSpacing:1,marginBottom:5,paddingLeft:2}}>{cat}</div>
+                    {tasks.filter(t=>t.cat===cat).map(task=>{
+                      const key=`${wi}-${di}-${task.id}`;
+                      return <TaskItem key={task.id} task={task} checked={!!checks[key]} onToggle={()=>toggle(key)} color={color}/>;
+                    })}
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })()}
+
+        {/* ═══ REPAS ═══ */}
+        {tab==="repas"&&(
+          <div>
+
+            {/* ═══ SECTION 1 : MENU SEMAINE ═══ */}
+            <RepasMenuSelector/>
+
+
+            {/* ═══ SECTION 2 : RECETTES REPAS 1 ═══ */}
+            <div style={{color:C.acc,fontSize:11,fontWeight:700,letterSpacing:1.2,textTransform:"uppercase",margin:"20px 0 10px"}}>🍳 RECETTES COMPLÈTES — REPAS 1</div>
+            {[
+              {day:"Lundi",name:"Omelette Denver Power",time:"8 min",color:C.acc,
+               ing:["3 oeufs + 2 blancs","½ poivron rouge coupé fin","2 poignées épinards frais","Paprika fumé + sel rose + poivre","Spray huile de coco"],
+               steps:["Battre oeufs + blancs avec sel + paprika fumé","Revenir poivron + oignon 2 min feu moyen","Verser les oeufs sur les légumes, ne pas toucher 1 min","Ajouter épinards sur une moitié quand les bords sont pris","Plier et servir immédiatement"]},
+              {day:"Mardi",name:"Avoine Salée Oeuf Poché",time:"10 min",color:C.teal,
+               ing:["½ tasse flocons avoine","250ml bouillon poulet sans sel","2 oeufs frais","1 poignée épinards","1 c.s. parmesan râpé","Sel rose + poivre + paprika","1 c.s. vinaigre blanc"],
+               steps:["Cuire avoine dans bouillon 3–4 min en remuant","Porter casserole d'eau à frémissement + vinaigre","Casser chaque oeuf dans une tasse, glisser dans l'eau","Pocher 3 min jaune coulant / 4 min jaune ferme","Ajouter épinards dans avoine chaude 30 sec","Verser dans bol, déposer oeufs pochés, parmesan + paprika"]},
+              {day:"Mercredi",name:"Omelette Méditerranéenne",time:"8 min",color:C.blue,
+               ing:["3 oeufs + 2 blancs","8 tomates cherry coupées en deux","30g feta émiettée","1 c.t. origan séché","Sel rose + poivre","Spray huile olive"],
+               steps:["Battre oeufs + blancs avec sel + origan","Chauffer poêle feu moyen avec spray huile olive","Verser oeufs, laisser prendre les bords 1 min","Ajouter tomates cherry + feta sur une moitié","Couvrir avec couvercle 1 min","Plier et servir"]},
+              {day:"Jeudi",name:"Omelette Salsa-Avocat",time:"7 min",color:C.ora,
+               ing:["3 oeufs + 2 blancs","3 c.s. salsa sans sucre","½ avocat tranché","Coriandre fraîche ou séchée","Cumin + sel rose","Spray huile de coco"],
+               steps:["Battre oeufs + blancs avec cumin + sel","Chauffer poêle feu moyen-vif avec spray coco","Verser oeufs, cuire 1 min sans toucher","Ajouter salsa sur une moitié quand presque pris","Plier, servir avec avocat à côté","Garnir de coriandre"]},
+              {day:"Vendredi",name:"Pancakes Protéinés Bleuets",time:"12 min",color:C.purple,
+               ing:["2 oeufs entiers","1 scoop whey chocolat (30g)","½ tasse flocons avoine mixés en farine","½ banane mûre écrasée","½ tasse bleuets","Cannelle + spray coco"],
+               steps:["Mixer flocons avoine 30 sec en farine","Mélanger farine + oeufs + banane + whey + cannelle","Ajouter 1–2 c.s. eau si trop épaisse","Chauffer poêle feu moyen avec spray coco","Verser petits cercles, ajouter bleuets sur chaque","2–3 min par côté — attendre les bulles avant de retourner"]},
+              {day:"Samedi",name:"Brunch Oeufs Bénédicte Léger",time:"12 min",color:C.pink,
+               ing:["2 oeufs frais","2 poignées épinards frais","8 tomates cherry","1 tranche pain de seigle (skip si Phase MAX)","Sel rose + poivre + paprika","1 c.s. vinaigre blanc"],
+               steps:["Sauter épinards + tomates cherry dans huile olive 2 min","Pocher 2 oeufs dans eau frémissante + vinaigre 3–4 min","Toaster le pain de seigle si utilisé","Dresser : pain → épinards + tomates → oeufs pochés","Assaisonner sel + poivre + paprika","Manger immédiatement"]},
+              {day:"Dimanche",name:"Yaourt Grec Power Bowl",time:"3 min",color:C.teal,
+               ing:["200g yaourt grec 0%","½ tasse bleuets frais ou décongelés","15 amandes non salées","1 c.t. miel naturel","1 c.t. cannelle"],
+               steps:["Verser le yaourt dans un bol","Ajouter les bleuets","Parsemer les amandes","Filet de miel + cannelle","Consommer dans les 30 min après le réveil"]},
+            ].map((r,i)=>(
+              <div key={i} style={{background:C.s2,border:`1px solid ${C.bd}`,borderLeft:`3px solid ${r.color}`,borderRadius:11,padding:"13px 15px",marginBottom:10}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+                  <div>
+                    <div style={{color:C.muted,fontSize:10,letterSpacing:1,marginBottom:2}}>{r.day}</div>
+                    <div style={{fontWeight:700,fontSize:14,color:C.text}}>{r.name}</div>
+                  </div>
+                  <span style={{color:r.color,fontSize:10,fontWeight:700,background:r.color+"20",padding:"2px 8px",borderRadius:99}}>⏱ {r.time}</span>
+                </div>
+                <div style={{color:r.color,fontSize:10,fontWeight:700,letterSpacing:1,marginBottom:5}}>INGRÉDIENTS</div>
+                {r.ing.map((ing,j)=><div key={j} style={{color:C.muted,fontSize:12,paddingLeft:6,marginBottom:2}}>· {ing}</div>)}
+                <div style={{color:r.color,fontSize:10,fontWeight:700,letterSpacing:1,margin:"10px 0 5px"}}>ÉTAPES</div>
+                {r.steps.map((step,j)=>(
+                  <div key={j} style={{display:"flex",gap:7,marginBottom:5}}>
+                    <span style={{color:r.color,fontSize:10,fontWeight:700,minWidth:16,marginTop:2,flexShrink:0}}>{j+1}.</span>
+                    <span style={{color:C.text,fontSize:12,lineHeight:1.5}}>{step}</span>
+                  </div>
+                ))}
+              </div>
+            ))}
+
+            {/* ═══ SECTION 3 : RECETTES REPAS 2 ═══ */}
+            <div style={{color:C.teal,fontSize:11,fontWeight:700,letterSpacing:1.2,textTransform:"uppercase",margin:"20px 0 10px"}}>🍗 RECETTES COMPLÈTES — REPAS 2</div>
+            <div style={{background:C.tealD,border:`1px solid ${C.teal}40`,borderRadius:10,padding:"10px 14px",marginBottom:10}}>
+              <div style={{color:C.teal,fontSize:12,fontWeight:700,marginBottom:3}}>💡 Repas 2 = protéine batch cook + sauce du jour + légumes rôtis</div>
+              <div style={{color:C.text,fontSize:12}}>Voir section 🫙 SAUCES pour les recettes de sauces. La base reste la même — c'est la sauce qui change chaque jour !</div>
+            </div>
+            {[
+              {day:"Lundi",name:"Bowl Poulet Sauce Citron-Ail",color:C.acc,
+               ing:["175g poulet batch (sorti du Tupperware)","200g légumes rôtis batch","Sauce Citron-Ail (préparée dimanche)","Optionnel Phase FINISH : 100g quinoa ou riz brun"],
+               steps:["Sortir le Tupperware Lundi du frigo","Micro-ondes 2 min si tu veux réchauffer (ou manger froid — les deux marchent)","Verser la sauce Citron-Ail par-dessus","Ajouter quinoa/riz si Phase FINISH","C'est prêt — 0 cuisine !"]},
+              {day:"Mardi",name:"Bowl Saumon Sauce Teriyaki",color:C.teal,
+               ing:["180g saumon batch (sorti du frigo)","200g légumes rôtis batch","Sauce Teriyaki (préparée dimanche)","Optionnel Phase FINISH : 100g riz brun"],
+               steps:["Sortir le Tupperware Mardi","Saumon peut se manger froid ou réchauffé 1 min micro-ondes","Verser sauce Teriyaki","Ajouter riz si Phase FINISH","Garnir sésame si disponible"]},
+              {day:"Mercredi",name:"Bowl Boeuf Sauce Épicée",color:C.red,
+               ing:["175g boeuf haché épicé batch","200g légumes rôtis batch","Sauce Épicée Mexicaine (préparée dimanche)","½ avocat (à ajouter frais le jour même)"],
+               steps:["Sortir Tupperware Mercredi","Réchauffer boeuf + légumes 2 min micro-ondes","Verser sauce épicée","Trancher ½ avocat frais par-dessus","Ajouter coriandre si disponible"]},
+              {day:"Jeudi",name:"Bowl Tilapia Sauce Méditerranéenne",color:C.blue,
+               ing:["200g tilapia batch (sorti du frigo)","200g légumes rôtis batch","Sauce Méditerranéenne (préparée dimanche)","Quelques olives noires tranchées"],
+               steps:["Sortir Tupperware Jeudi","Tilapia peut se manger froid ou réchauffé 1 min","Laisser la sauce Méditerranéenne 5 min à température (l'huile peut avoir figé)","Verser sauce + olives","Jus de citron frais si disponible"]},
+              {day:"Vendredi",name:"Salade Méditerranéenne Poulet-Feta",color:C.pink,
+               ing:["175g poulet batch tranché","Chou rouge + carottes râpées","Concombre + tomates cherry","30g feta émiettée","Sauce Moutarde-Herbes (préparée dimanche)"],
+               steps:["Trancher le poulet batch en lamelles","Assembler légumes dans un grand bol","Ajouter poulet + feta émiettée","Verser sauce moutarde-herbes","Mélanger — repas frais et léger parfait pour vendredi"]},
+              {day:"Samedi",name:"Bowl Boeuf Salsa-Avocat",color:C.ora,
+               ing:["175g boeuf haché épicé batch","200g légumes rôtis batch","3 c.s. salsa fraîche sans sucre","¼ avocat tranché"],
+               steps:["Réchauffer boeuf + légumes 2 min","Ajouter salsa fraîche","Trancher ¼ avocat par-dessus","Simple et satisfaisant — jour off donc plus de temps pour manger tranquillement"]},
+              {day:"Dimanche",name:"Assiette Légère Batch Cook",color:C.muted,
+               ing:["Légumes crus coupés du batch","200g cottage cheese","15 amandes","Quelques tomates cherry"],
+               steps:["Grignoter PENDANT le batch cook du dimanche","Pas de vrai repas 2 le dimanche — tu mangeras au fur et à mesure","Légumes crus + cottage cheese = satiété sans effort","Reste hydratée pendant les 90 min de prep"]},
+            ].map((r,i)=>(
+              <div key={i} style={{background:C.s2,border:`1px solid ${C.bd}`,borderLeft:`3px solid ${r.color}`,borderRadius:11,padding:"13px 15px",marginBottom:10}}>
+                <div style={{marginBottom:8}}>
+                  <div style={{color:C.muted,fontSize:10,letterSpacing:1,marginBottom:2}}>{r.day}</div>
+                  <div style={{fontWeight:700,fontSize:14,color:C.text}}>{r.name}</div>
+                </div>
+                <div style={{color:r.color,fontSize:10,fontWeight:700,letterSpacing:1,marginBottom:5}}>INGRÉDIENTS</div>
+                {r.ing.map((ing,j)=><div key={j} style={{color:C.muted,fontSize:12,paddingLeft:6,marginBottom:2}}>· {ing}</div>)}
+                <div style={{color:r.color,fontSize:10,fontWeight:700,letterSpacing:1,margin:"10px 0 5px"}}>ÉTAPES</div>
+                {r.steps.map((step,j)=>(
+                  <div key={j} style={{display:"flex",gap:7,marginBottom:5}}>
+                    <span style={{color:r.color,fontSize:10,fontWeight:700,minWidth:16,marginTop:2,flexShrink:0}}>{j+1}.</span>
+                    <span style={{color:C.text,fontSize:12,lineHeight:1.5}}>{step}</span>
+                  </div>
+                ))}
+              </div>
+            ))}
+
+            {/* ═══ SECTION 4 : RECETTES REPAS 3 ═══ */}
+            <div style={{color:C.pink,fontSize:11,fontWeight:700,letterSpacing:1.2,textTransform:"uppercase",margin:"20px 0 10px"}}>🌙 RECETTES COMPLÈTES — REPAS 3</div>
+            {[
+              {day:"Lundi",name:"Cottage Bowl Fraises-Amandes",time:"3 min",color:C.pink,
+               ing:["200g cottage cheese 2%","½ tasse fraises fraîches ou décongelées","15 amandes non salées","1 c.t. cannelle","1 c.t. miel naturel (optionnel)"],
+               steps:["Verser cottage cheese dans un bol","Ajouter fraises tranchées","Parsemer amandes","Cannelle + miel si désiré","Consommer avant 20h00"]},
+              {day:"Mardi",name:"Shake Chocolat Récupération",time:"3 min",color:C.teal,
+               ing:["1 scoop whey chocolat (30g)","300ml eau froide ou lait écrémé","5–6 glaçons","1 c.t. cacao naturel non sucré"],
+               steps:["Mettre tous les ingrédients dans le shaker ou blender","Agiter 15–20 sec ou mixer 30 sec","Boire immédiatement","Consommer avant 20h00"]},
+              {day:"Mercredi",name:"Cottage Bowl Bleuets-Cannelle",time:"3 min",color:C.purple,
+               ing:["200g cottage cheese 2%","½ tasse bleuets frais ou surgelés décongelés","15 amandes","1 c.t. cannelle"],
+               steps:["Verser cottage cheese","Ajouter bleuets décongelés","Garnir amandes + cannelle","Consommer avant 20h00"]},
+              {day:"Jeudi",name:"Shake Vanille-Fraises",time:"3 min",color:C.acc,
+               ing:["1 scoop whey chocolat (30g)","300ml lait écrémé froid","½ tasse fraises congelées","5 glaçons"],
+               steps:["Mettre fraises + glaçons dans blender","Ajouter whey + lait écrémé","Mixer 30–45 sec","Boire immédiatement avant 20h00"]},
+              {day:"Vendredi",name:"Soupe Poulet Anti-Gonflement",time:"15 min",color:C.blue,
+               ing:["150g poulet batch effiloché","500ml bouillon poulet sans sel","½ courgette en dés","5–6 champignons tranchés","1 c.t. gingembre râpé + 2 gousses ail","Jus ½ citron + coriandre"],
+               steps:["Chauffer bouillon + ail + gingembre à feu moyen","Ajouter courgette + champignons, cuire 5 min","Ajouter poulet effiloché, réchauffer 2 min","Finir avec citron + coriandre","Parfaite pour réduire la rétention d'eau du vendredi soir"]},
+              {day:"Samedi",name:"Shake Récupération Post-Workout",time:"3 min",color:C.ora,
+               ing:["1 scoop whey (30g)","150ml lait écrémé + 150ml eau","½ banane","1 c.t. cacao naturel","5 glaçons"],
+               steps:["Tout dans le blender","Mixer 30 sec","Consommer dans 30–45 min post-workout","Avant 20h30 (jour off)"]},
+              {day:"Dimanche",name:"Cottage Bowl Simple",time:"2 min",color:C.teal,
+               ing:["200g cottage cheese 2%","½ tasse fraises OU bleuets","15 amandes","1 c.t. cannelle"],
+               steps:["Assembler en 2 min","Repas léger — tu as mangé pendant le meal prep","Consommer avant 20h00"]},
+            ].map((r,i)=>(
+              <div key={i} style={{background:C.s2,border:`1px solid ${C.bd}`,borderLeft:`3px solid ${r.color}`,borderRadius:11,padding:"13px 15px",marginBottom:10}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+                  <div>
+                    <div style={{color:C.muted,fontSize:10,letterSpacing:1,marginBottom:2}}>{r.day}</div>
+                    <div style={{fontWeight:700,fontSize:14,color:C.text}}>{r.name}</div>
+                  </div>
+                  <span style={{color:r.color,fontSize:10,fontWeight:700,background:r.color+"20",padding:"2px 8px",borderRadius:99}}>⏱ {r.time}</span>
+                </div>
+                <div style={{color:r.color,fontSize:10,fontWeight:700,letterSpacing:1,marginBottom:5}}>INGRÉDIENTS</div>
+                {r.ing.map((ing,j)=><div key={j} style={{color:C.muted,fontSize:12,paddingLeft:6,marginBottom:2}}>· {ing}</div>)}
+                <div style={{color:r.color,fontSize:10,fontWeight:700,letterSpacing:1,margin:"10px 0 5px"}}>ÉTAPES</div>
+                {r.steps.map((step,j)=>(
+                  <div key={j} style={{display:"flex",gap:7,marginBottom:5}}>
+                    <span style={{color:r.color,fontSize:10,fontWeight:700,minWidth:16,marginTop:2,flexShrink:0}}>{j+1}.</span>
+                    <span style={{color:C.text,fontSize:12,lineHeight:1.5}}>{step}</span>
+                  </div>
+                ))}
+              </div>
+            ))}
+
+            {/* ═══ SECTION 5 : SAUCES ═══ */}
+            <div style={{color:C.ora,fontSize:11,fontWeight:700,letterSpacing:1.2,textTransform:"uppercase",margin:"20px 0 10px"}}>🫙 RECETTES SAUCES — PRÉPARER LE DIMANCHE</div>
+            <div style={{background:C.oraD,border:`1px solid ${C.ora}40`,borderRadius:10,padding:"12px 14px",marginBottom:12}}>
+              <div style={{color:C.ora,fontWeight:700,fontSize:12,marginBottom:4}}>💡 HACK DIMANCHE — 10 min pour toute la semaine</div>
+              <div style={{color:C.text,fontSize:13,lineHeight:1.6}}>Prépare les 5 sauces en même temps que le batch cook. Un pot mason étiqueté par jour : L · Ma · Me · Je · Ve. Toute la semaine prête en 10 min extra.</div>
+            </div>
+            {[
+              {day:"Lundi",name:"Sauce Citron-Ail",color:C.acc,conserve:"5 jours",
+               ing:["Jus de 1 citron","2 gousses ail pressées","2 c.s. huile d'olive extra vierge","1 c.t. herbes de Provence","Sel rose + poivre"],
+               steps:["Presser le citron dans un petit bol","Ajouter ail pressé + huile olive + herbes","Mélanger sel + poivre","Verser dans pot mason étiqueté LUNDI","Verser sur poulet au moment de manger"]},
+              {day:"Mardi",name:"Sauce Teriyaki Maison",color:C.teal,conserve:"7 jours",
+               ing:["3 c.s. sauce soja réduite sodium","1 c.s. miel naturel","1 c.t. gingembre frais râpé","1 c.t. ail en poudre"],
+               steps:["Mélanger tous les ingrédients","Chauffer à feu doux 2 min pour épaissir (optionnel)","Laisser refroidir avant de fermer le pot","Excellent sur saumon ET poulet"]},
+              {day:"Mercredi",name:"Sauce Épicée Mexicaine",color:C.red,conserve:"5 jours",
+               ing:["4 c.s. salsa sans sucre","1 c.t. cumin","1 c.t. paprika fumé","Jus de ½ lime","Coriandre fraîche ou séchée"],
+               steps:["Mélanger salsa + épices + lime","Ajouter coriandre selon goût","Verser dans pot étiqueté MERCREDI","Parfaite sur boeuf haché"]},
+              {day:"Jeudi",name:"Sauce Méditerranéenne",color:C.blue,conserve:"5 jours",
+               ing:["2 c.s. huile d'olive","Jus de ½ citron","1 c.t. origan séché","½ c.t. ail en poudre","Sel rose + poivre noir"],
+               steps:["Mélanger tous les ingrédients au fouet","Verser dans pot étiqueté JEUDI","L'huile peut figer au frigo — normal","Laisser 5 min à température avant de verser"]},
+              {day:"Vendredi",name:"Sauce Moutarde-Herbes",color:C.purple,conserve:"7 jours",
+               ing:["2 c.s. moutarde de Dijon","1 c.s. huile d'olive","Jus de ½ citron","1 c.t. herbes de Provence","½ c.t. miel (optionnel)"],
+               steps:["Fouetter moutarde + huile olive + citron","Ajouter herbes + miel si désiré","Bien mélanger jusqu'à homogène","Excellent sur poulet, tilapia ET boeuf"]},
+            ].map((r,i)=>(
+              <div key={i} style={{background:C.s2,border:`1px solid ${C.bd}`,borderLeft:`3px solid ${r.color}`,borderRadius:11,padding:"13px 15px",marginBottom:10}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+                  <div>
+                    <div style={{color:C.muted,fontSize:10,letterSpacing:1,marginBottom:2}}>{r.day}</div>
+                    <div style={{fontWeight:700,fontSize:14,color:C.text}}>{r.name}</div>
+                    <div style={{color:C.muted,fontSize:11,marginTop:2}}>⏱ 3–5 min · 🧊 Se conserve {r.conserve}</div>
+                  </div>
+                </div>
+                <div style={{color:r.color,fontSize:10,fontWeight:700,letterSpacing:1,marginBottom:5}}>INGRÉDIENTS</div>
+                {r.ing.map((ing,j)=><div key={j} style={{color:C.muted,fontSize:12,paddingLeft:6,marginBottom:2}}>· {ing}</div>)}
+                <div style={{color:r.color,fontSize:10,fontWeight:700,letterSpacing:1,margin:"10px 0 5px"}}>PRÉPARATION</div>
+                {r.steps.map((step,j)=>(
+                  <div key={j} style={{display:"flex",gap:7,marginBottom:5}}>
+                    <span style={{color:r.color,fontSize:10,fontWeight:700,minWidth:16,marginTop:2,flexShrink:0}}>{j+1}.</span>
+                    <span style={{color:C.text,fontSize:12,lineHeight:1.5}}>{step}</span>
+                  </div>
+                ))}
+              </div>
+            ))}
+
+            {/* ═══ BATCH COOK + FAST FOOD ═══ */}
+            <Collapse title="🍱 BATCH COOK DIMANCHE — 60 MIN" color={C.acc} defaultOpen={false}>
+              <BulletList color={C.acc} items={["🍗 Poulet 1,2kg au four 200°C 25min — pour lundi + vendredi","🐟 Saumon 2 portions à la poêle 4min/côté — pour mardi","🥩 Boeuf haché 350g + épices à la poêle — pour mercredi + samedi","🐠 Tilapia 400g au four ou poêle 4min/côté — pour jeudi","🥦 1 grande plaque légumes rôtis (brocoli + courgette + poivron) — toute la semaine","🥚 10 oeufs durs bouillis — pour les omelettes de la semaine","🫙 5 sauces dans pots mason étiquetés L/Ma/Me/Je/Ve — 10 min","🔪 Couper légumes pour omelettes (poivron, oignon vert, tomates cherry)","📦 Assembler 5 Tupperware L–Ma–Me–Je–Ve"]}/>
+            </Collapse>
+
+            <Collapse title="🍔 FAST FOOD CONTRÔLÉ" color={C.ora} defaultOpen={false}>
+              <BulletList color={C.ora} items={["McDo/A&W : Grilled Chicken Wrap SANS sauce OU Salade César poulet vinaigrette côté (~350 kcal)","Subway : BOL sans pain — poulet rôti + tous légumes + moutarde (~380 kcal · 42g prot.)","Tim Hortons : café latte lait écrémé SANS sucre OU thé vert — zéro muffin/beigne","Chipotle : Bowl poulet + légumes + salsa — PAS crème sure ni fromage extra"]}/>
+            </Collapse>
+
+          </div>
+        )}
+
+        {/* ═══ ÉPICERIE ═══ */}
+        {tab==="epicerie"&&<EpicerieTab/>}
+
+        {/* ═══ FITNESS ═══ */}
+        {tab==="fitness"&&(
+          <div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>
+              <Kpi icon="💪" label="Séances/sem" value="4" sub="Lun · Mer · Ven · Sam" color={C.acc}/>
+              <Kpi icon="🏃" label="Cardio/jour" value={isMax?"45min":"30min"} sub={isMax?"zone 2+3":"zone 2"} color={C.pink}/>
+              <Kpi icon="👟" label="Pas/jour" value="10 000" sub="cible quotidienne" color={C.ora}/>
+              <Kpi icon="❤️" label="FC cardio" value={isMax?"135–155":"115–135"} sub="bpm zone cible" color={C.red}/>
+            </div>
+            <Collapse title="💪 JOUR A — LOWER BODY (Lun + Ven)" color={C.acc} defaultOpen={true}>
+              {[["Goblet Squat","Quadriceps · Fessiers",3,"12–15","60s","Dumbbell contre la poitrine · dos plat"],["Romanian Deadlift","Ischio-jambiers · Fessiers",3,"12","60s","DOS PLAT · hanches reculées"],["Fentes alternées","Quadriceps · Fessiers",3,"10/côté","60s",null],["Hip Thrust Dumbbell","Grand fessier",3,"15","60s","Épaules sur canapé · poussée explosive"],["Élévation mollets","Mollets",3,"20","30s",null],["Planche frontale","Core · Abdos",3,"30–60s","30s","→ 60s dès sem. 4"]].map((e,i)=>(
+                <div key={i} style={{background:C.s3,border:`1px solid ${C.bd}`,borderRadius:10,padding:"11px 13px",marginBottom:7}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+                    <div><div style={{fontWeight:700,fontSize:13}}>{e[0]}</div><div style={{color:C.muted,fontSize:11,marginTop:2}}>{e[1]}</div></div>
+                    <div style={{display:"flex",gap:5}}>
+                      <span style={{padding:"2px 8px",borderRadius:99,fontSize:10,fontWeight:700,background:C.acc+"20",color:C.acc,border:`1px solid ${C.acc}40`}}>{e[2]}×{e[3]}</span>
+                      <span style={{padding:"2px 8px",borderRadius:99,fontSize:10,fontWeight:700,background:C.muted2,color:C.muted}}>⏱ {e[4]}</span>
+                    </div>
+                  </div>
+                  {e[5]&&<div style={{color:C.ora,fontSize:11,marginTop:5}}>⚡ {e[5]}</div>}
+                </div>
+              ))}
+            </Collapse>
+            <Collapse title="💪 JOUR B — UPPER BODY (Mer + Sam)" color={C.teal}>
+              {[["Arnold Press","Épaules · Triceps",3,"12","60s","Mouvement rotatif — sculpte épaules rondes"],["Rowing unilatéral","Dos · Biceps · Posture",3,"12/côté","60s","Genou + main sur chaise · dos plat"],["Fly latéral debout","Épaules médiales",3,"15","45s",null],["Curl biceps alterné","Biceps · Avant-bras",3,"12","45s","⚠️ Fracture : commence 2–5 lbs"],["Extension triceps overhead","Triceps",3,"12","45s",null],["Crunch obliques","Obliques · Taille",3,"15/côté","30s",null]].map((e,i)=>(
+                <div key={i} style={{background:C.s3,border:`1px solid ${C.bd}`,borderRadius:10,padding:"11px 13px",marginBottom:7}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+                    <div><div style={{fontWeight:700,fontSize:13}}>{e[0]}</div><div style={{color:C.muted,fontSize:11,marginTop:2}}>{e[1]}</div></div>
+                    <div style={{display:"flex",gap:5}}>
+                      <span style={{padding:"2px 8px",borderRadius:99,fontSize:10,fontWeight:700,background:C.teal+"20",color:C.teal,border:`1px solid ${C.teal}40`}}>{e[2]}×{e[3]}</span>
+                    </div>
+                  </div>
+                  {e[5]&&<div style={{color:C.ora,fontSize:11,marginTop:5}}>⚡ {e[5]}</div>}
+                </div>
+              ))}
+            </Collapse>
+          </div>
+        )}
+
+        {/* ═══ PROGRÈS ═══ */}
+        {tab==="progres"&&<ProgressTab/>}
+
+        {/* ═══ SUPPLÉMENTS ═══ */}
+        {tab==="supps"&&(
+          <div>
+            {[{title:"⭐ PRIORITÉ 1",color:C.acc,items:[{name:"Whey Protéine",dose:"1 scoop 30g/jour",detail:"Post-workout ou avant dodo. Atteindre 145g/jour sans = quasi impossible."},{name:"Créatine Monohydrate",dose:"3–5g/jour",detail:"Force +15–20% · rétention musculaire en déficit. Pas besoin de cycliser."},{name:"Magnésium Bisglycinate",dose:"300–400mg avant dodo",detail:"Améliore sommeil profond · réduit cortisol · fringales sucrées."}]},
+             {title:"💊 PRIORITÉ 2",color:C.teal,items:[{name:"Vitamine D3 + K2",dose:"2000 UI D3 + 100mcg K2",detail:"Déficience quasi-universelle au Québec. Humeur · énergie · hormones."},{name:"Oméga-3 EPA+DHA",dose:"2–3g/jour avec repas",detail:"Anti-inflammatoire · composition corporelle · concentration."}]}
+            ].map(({title,color,items})=>(
+              <div key={title} style={{marginBottom:14}}>
+                <div style={{color,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",marginBottom:8}}>{title}</div>
+                {items.map((s,i)=>(
+                  <div key={i} style={{background:C.s3,border:`1px solid ${C.bd}`,borderRadius:10,padding:"12px 14px",marginBottom:8}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:5}}>
+                      <div style={{fontWeight:700,fontSize:14}}>{s.name}</div>
+                      <span style={{color,fontSize:10,fontWeight:700,background:color+"20",padding:"2px 8px",borderRadius:99,border:`1px solid ${color}40`,whiteSpace:"nowrap",marginLeft:8}}>{s.dose}</span>
+                    </div>
+                    <p style={{color:C.muted,fontSize:12,lineHeight:1.5,margin:0}}>{s.detail}</p>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* ═══ COACHING ═══ */}
+        {tab==="coaching"&&(
+          <div>
+      {/* ROUTINE SOIR */}
+      <div style={{color:C.purple,fontSize:11,fontWeight:700,letterSpacing:1.2,textTransform:"uppercase",margin:"20px 0 10px"}}>🌙 ROUTINE SOIR — CHAQUE JOUR</div>
+      <div style={{background:C.purpleD,border:`1px solid ${C.purple}40`,borderRadius:10,padding:"12px 14px",marginBottom:12}}>
+        <div style={{color:C.purple,fontWeight:700,fontSize:12,marginBottom:4}}>💡 LA ROUTINE SOIR = 40% DE TES RÉSULTATS</div>
+        <div style={{color:C.text,fontSize:13,lineHeight:1.6}}>Ce que tu fais entre 20h et 22h détermine la qualité de ton sommeil, ton cortisol du lendemain et ta perte de gras. C'est non-négociable.</div>
+      </div>
+      {[
+        {time:"20h00",label:"🚫 Fermeture fenêtre alimentaire",detail:"Brosser les dents IMMÉDIATEMENT — signal physiologique au cerveau que c'est terminé",color:C.red},
+        {time:"20h05",label:"🍽️ Cuisine rangée",detail:"Vaisselle faite, nourriture hors de vue — élimine le grignotage nocturne automatique",color:C.ora},
+        {time:"20h15",label:"💊 Magnésium bisglycinate 300mg",detail:"Prendre avec un grand verre d'eau — améliore le sommeil profond",color:C.teal},
+        {time:"20h30",label:"🎽 Préparer les affaires du lendemain",detail:"Vêtements de travail + tenue sport + Tupperware repas 2 sorti du frigo + verre d'eau sur table de nuit",color:C.blue},
+        {time:"21h00",label:"🚿 Douche tiède ou bain",detail:"Eau tiède (pas chaude) — baisse la température corporelle = endormissement plus rapide",color:C.muted},
+        {time:"21h15",label:"📱 Dimmer les écrans",detail:"Luminosité au minimum + mode nuit activé — pas de réseaux sociaux après 21h30",color:C.purple},
+        {time:"21h30",label:"📖 10 min lecture ou journaling",detail:"Pas de téléphone — livre, magazine, noter 3 choses positives de la journée",color:C.purple},
+        {time:"21h45",label:"🌡️ Rafraîchir la chambre",detail:"Fenêtre ouverte ou température fraîche — le corps dort mieux dans une pièce fraîche (18–20°C)",color:C.blue},
+        {time:"22h00",label:"🌙 EXTINCTION — LIGHTS OUT",detail:"7 heures de sommeil minimum. Pas de négociation. Le sommeil = 40% de tes résultats.",color:C.purple},
+      ].map((item,i)=>(
+        <div key={i} style={{display:"flex",gap:12,alignItems:"flex-start",marginBottom:10}}>
+          <div style={{minWidth:46,fontSize:11,fontWeight:700,fontFamily:"monospace",color:item.color,paddingTop:2,textAlign:"right",flexShrink:0}}>{item.time}</div>
+          <div style={{width:2,background:item.color+"40",borderRadius:2,alignSelf:"stretch",minHeight:32,flexShrink:0}}/>
+          <div style={{flex:1,background:C.s2,border:`1px solid ${C.bd}`,borderRadius:10,padding:"10px 12px"}}>
+            <div style={{color:C.text,fontSize:13,fontWeight:600}}>{item.label}</div>
+            <div style={{color:C.muted,fontSize:11,marginTop:3,lineHeight:1.5}}>{item.detail}</div>
+          </div>
+        </div>
+      ))}
+            {[["🧠 PSYCHOLOGIE",C.acc,["IDENTITÉ > OBJECTIFS : ne dis plus 'j'essaie de maigrir'. Dis-toi : 'je suis quelqu'un qui prend soin de son corps'. L'identité crée les actions.","Ton ennemi = toi le soir, fatiguée, entre 20h et minuit. Solution : fenêtre fermée + dents brossées = signal TERMINÉ.","BEFORE PHOTO aujourd'hui — elle sera ta plus grande motivation dans 8 semaines."]],
+              ["⚡ ANTI-PARESSE",C.ora,["RÈGLE 2 MIN : s'habiller pour l'entraînement = 2min. Une fois habillée, tu y vas 90% du temps.","HABIT STACKING : café matin → 500ml eau. Rentrée → chaussures sport enfilées.","RÉCOMPENSE IMMÉDIATE : après chaque séance → 30min série Netflix. Effort → plaisir."]],
+              ["🛑 ANTI-FRINGALES",C.pink,["RÈGLE 20MIN : fringale ? Bois 500ml eau + 20 squats + attends 20min. 80% des fringales disparaissent.","PRÉ-PORTIONNER le dimanche : amandes dans sachets de 15 unités = décision déjà prise.","ZÉRO NOURRITURE BINGE À LA MAISON : si les chips ne sont pas là, impossible de binge à 23h."]],
+              ["🔴 CYCLE MENSTRUEL",C.purple,["PHASE FOLLICULAIRE (Sem. 1–2) : énergie max → pousser les entraînements.","PHASE LUTÉALE (Sem. 3–4) : fringales sucrées normales → chocolat noir 85%, dattes.","Rétention eau +1–3 lbs = NORMALE avant les règles — ne panique pas.","+100–150 kcal autorisés. Magnésium double dose cette semaine."]]
+            ].map(([title,color,items])=>(
+              <Collapse key={title} title={title} color={color}>
+                <BulletList items={items} color={color}/>
+              </Collapse>
+            ))}
+          </div>
+        )}
+
+        {/* ═══ STATS ═══ */}
+        {tab==="cycle"&&<CycleTab/>}
+        {tab==="notes"&&<NotesTab/>}
+        {tab==="timer"&&<TimerTab/>}
+        {tab==="rapport"&&<RapportTab/>}
+        {tab==="stats"&&(
+          <div>
+            <div style={{background:C.s2,border:`1px solid ${C.bd}`,borderRadius:13,padding:"14px 16px",marginBottom:12}}>
+              <div style={{color:C.muted,fontSize:10,letterSpacing:2,textTransform:"uppercase",marginBottom:10}}>📊 JALONS DE POIDS</div>
+              {[{sem:"Départ",w:"190 lbs",note:"Photos avant · mesures initiales",c:C.muted},{sem:"Sem. 2",w:"187–188",note:"🔥 IF + déficit installé",c:C.blue},{sem:"Sem. 4",w:"183–185",note:"🔥 Bilan photos · HIIT démarré",c:C.teal},{sem:"Sem. 6",w:"179–181",note:"🔥 Corps visible",c:C.ora},{sem:"Sem. 8",w:"175–177",note:"🔥 Visage affiné · taille –4po",c:C.acc},{sem:"Sem. 10 🏁",w:"170–172",note:"🔥 PHASE MAX TERMINÉE",c:C.acc},{sem:"Sem. 12",w:"168–170",note:"✨ FINISH · 1 lb/sem",c:C.pink},{sem:"Sem. 18",w:"160–162 ✓",note:"✨ OBJECTIF ATTEINT 🏆",c:C.acc}].map((m,i)=>(
+                <div key={i} style={{display:"flex",alignItems:"center",gap:9,padding:"7px 11px",marginBottom:4,borderRadius:9,background:m.c===C.acc?C.accD:C.s3,border:`1px solid ${m.c===C.acc?C.accB:C.bd}`}}>
+                  <div style={{color:m.c,fontSize:10,fontWeight:700,minWidth:68}}>{m.sem}</div>
+                  <div style={{color:m.c,fontWeight:900,fontSize:14,minWidth:76}}>{m.w}</div>
+                  <div style={{color:C.muted,fontSize:10}}>{m.note}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+  
+      {/* COACH BANNER */}
+        <div style={{background:`linear-gradient(135deg,${C.pinkD},${C.accD})`,border:`1px solid ${C.accB}`,borderRadius:13,padding:"13px 15px",marginTop:8}}>
+          <div style={{color:C.acc,fontWeight:700,fontSize:10,letterSpacing:1,marginBottom:5}}>⚡ RAPPEL DU COACH</div>
+          <p style={{fontSize:13,lineHeight:1.6,margin:0}}>{isMax?"🔥 1 350 kcal · fenêtre 19h30 · 45min cardio. ":"✨ Maintiens le rythme. "}<strong style={{color:C.pink}}>{isMax?"Marche 45min avant de rentrer.":"Constance > perfection."}</strong></p>
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+</script>
+</body>
+</html>
